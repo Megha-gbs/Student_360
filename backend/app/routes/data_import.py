@@ -2,15 +2,15 @@
 
 Data Import and CSV Validation Route.
 Provides endpoints for validating institutional academic dataset uploads
-strictly against the frozen 36 UCI features schema with RBAC protection.
+strictly against the frozen 36 UCI features schema.
 Accepts raw CSV body directly via FastAPI Request body, avoiding forced python-multipart dependency.
 """
 
-from typing import Any, Dict, Optional
+from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 
+from backend.app.core.security import AuthenticatedUser, UserRole, get_current_user
 from backend.app.schemas import CSVValidationResponse
-from backend.app.security import get_authenticated_user, require_roles
 from backend.app.services.csv_service import csv_service
 from backend.app.services.student_service import student_service
 
@@ -57,9 +57,15 @@ async def validate_academic_csv(
 async def import_academic_csv(
     request: Request,
     filename: Optional[str] = Query("academic_data.csv", description="Filename or descriptor"),
-    current_user: Dict[str, Any] = Depends(require_roles(["admin", "faculty"])),
+    current_user: AuthenticatedUser = Depends(get_current_user),
 ) -> CSVValidationResponse:
-    """Imports academic data after full validation enforcing RBAC."""
+    """Imports academic data after full validation."""
+    if current_user.role not in [UserRole.ADMIN, UserRole.FACULTY]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only Admin or Faculty users can import academic dataset files.",
+        )
+
     content = await request.body()
     if not content or len(content.strip()) == 0:
         raise HTTPException(
@@ -95,3 +101,16 @@ async def import_academic_csv(
 
     result["message"] = f"Successfully validated and ingested {added_count} student record(s) into active registry."
     return CSVValidationResponse(**result)
+
+
+@router.get(
+    "/data/dataset-stats",
+    summary="Get dataset loading and ingestion statistics",
+    description="Reports total dataset rows, loaded rows, rejected rows, and source provenance.",
+)
+def get_dataset_stats(
+    current_user: AuthenticatedUser = Depends(get_current_user),
+):
+    """Returns dataset loading statistics for audit and admin dashboards."""
+    return student_service.get_ingestion_stats()
+

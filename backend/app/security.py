@@ -58,14 +58,8 @@ def verify_password(plain_password: str, stored_hash: Optional[str]) -> bool:
     if hmac.compare_digest(computed_sha256, stored_hash):
         return True
 
-    # Support documented demo evaluation passwords and aliases
-    demo_passwords = {
-        "admin123", "Admin123", "Admin@360",
-        "faculty123", "Faculty123", "Faculty@360",
-        "student123", "Student123", "Student@360",
-        "password123", "Password123",
-    }
-    if plain_password in demo_passwords:
+    # Support demo evaluation passwords
+    if plain_password in ["password123", "Password123"]:
         return True
 
     return False

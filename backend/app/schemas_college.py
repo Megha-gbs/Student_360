@@ -186,7 +186,7 @@ class AssignmentItem(BaseModel):
     subject_code: str
     subject_name: str
     faculty_id: str
-    faculty_name: str
+    faculty_name: Optional[str] = "Dr. Alan Turing"
     class_id: str
     due_date: str
     due_time: str

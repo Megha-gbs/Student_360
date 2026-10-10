@@ -17,12 +17,19 @@ from backend.app.services.student_service import student_service
 class CohortService:
     """Computes dynamic cohort-wide analytics and SHAP drivers."""
 
+    def __init__(self):
+        self._cached_insights: Optional[Dict[str, Any]] = None
+        self._last_count: int = 0
+
     def get_cohort_insights(self) -> Dict[str, Any]:
         """
-        Loads all demo students, runs real ML inference for each,
+        Loads all cohort students, runs real ML inference for each,
         and computes aggregate statistics, global SHAP, segments, and by-course metrics.
         """
         students = student_service.get_all_students()
+
+        if self._cached_insights is not None and self._last_count == len(students):
+            return self._cached_insights
 
         high_risk_count = 0
         medium_risk_count = 0
@@ -35,6 +42,9 @@ class CohortService:
             "High academic risk (Approved units <= 2)": 0,
             "Financial risk (Debtor or Tuition overdue)": 0,
             "Retention transition risk (Age > 25)": 0,
+            "High risk with declining trajectory": 0,
+            "Strong academic standing (Approved units >= 10)": 0,
+            "Placement preparation needed": 0,
         }
 
         for student in students:
@@ -59,13 +69,25 @@ class CohortService:
             if is_high:
                 course_counts[course_id]["high"] += 1
 
-            # Segments calculation from real UCI features
-            if float(features.get("Curricular units 2nd sem (approved)", 0)) <= 2:
+            # Segments calculation from real UCI features & scores
+            sem1_app = float(features.get("Curricular units 1st sem (approved)", 0))
+            sem2_app = float(features.get("Curricular units 2nd sem (approved)", 0))
+            debtor = float(features.get("Debtor", 0))
+            tuition_ok = float(features.get("Tuition fees up to date", 1))
+            age = float(features.get("Age at enrollment", 0))
+
+            if sem2_app <= 2:
                 segments["High academic risk (Approved units <= 2)"] += 1
-            if float(features.get("Debtor", 0)) == 1 or float(features.get("Tuition fees up to date", 1)) == 0:
+            if debtor == 1 or tuition_ok == 0:
                 segments["Financial risk (Debtor or Tuition overdue)"] += 1
-            if float(features.get("Age at enrollment", 0)) > 25:
+            if age > 25:
                 segments["Retention transition risk (Age > 25)"] += 1
+            if is_high and sem2_app < sem1_app:
+                segments["High risk with declining trajectory"] += 1
+            if (sem1_app + sem2_app) >= 10:
+                segments["Strong academic standing (Approved units >= 10)"] += 1
+            if sem2_app <= 4:
+                segments["Placement preparation needed"] += 1
 
             cohort_feature_list.append(features)
 
@@ -103,7 +125,7 @@ class CohortService:
             for c, data in sorted(course_counts.items(), key=lambda x: x[1]["total"], reverse=True)
         ]
 
-        return {
+        res = {
             "total_students": total_students,
             "high_risk_count": high_risk_count,
             "medium_risk_count": medium_risk_count,
@@ -117,6 +139,9 @@ class CohortService:
             "segments": segment_list,
             "by_course": by_course_list,
         }
+        self._cached_insights = res
+        self._last_count = total_students
+        return res
 
 
 # Global singleton instance

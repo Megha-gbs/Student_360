@@ -1,20 +1,23 @@
 """backend/app/routes/scoring.py
 
 Scoring routes for Student Success Score and Placement Readiness.
-Exposes dedicated endpoints for rules-based holistic multi-dimensional evaluations
-with Role-Based Access Control (RBAC).
+Exposes dedicated endpoints for rules-based holistic multi-dimensional evaluations.
 """
 
-from typing import Any, Dict, Optional
+from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
+from backend.app.core.security import (
+    AuthenticatedUser,
+    get_current_user,
+    verify_student_access,
+)
 from backend.app.schemas import (
     PlacementReadinessRequest,
     PlacementReadinessResponse,
     SuccessScoreRequest,
     SuccessScoreResponse,
 )
-from backend.app.security import check_student_access, get_authenticated_user
 from backend.app.services.scoring_service import scoring_service
 from backend.app.services.student_service import student_service
 
@@ -83,16 +86,16 @@ def get_student_success_score(
     lms: Optional[float] = Query(None, ge=0.0, le=100.0, description="Optional LMS platform score"),
     engagement: Optional[float] = Query(None, ge=0.0, le=100.0, description="Optional engagement score"),
     placement_readiness: Optional[float] = Query(None, ge=0.0, le=100.0, description="Optional placement readiness"),
-    current_user: Dict[str, Any] = Depends(get_authenticated_user),
+    current_user: AuthenticatedUser = Depends(get_current_user),
 ) -> SuccessScoreResponse:
-    """Derives success score for an enrolled student enforcing RBAC."""
+    """Derives success score for an enrolled student."""
     student = student_service.get_student_by_id(student_id)
     if not student:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Student '{student_id}' not found",
         )
-    check_student_access(student_id, current_user)
+    verify_student_access(student_id=student_id, current_user=current_user)
     result = scoring_service.get_student_success_score(
         student_id=student_id,
         attendance=attendance,
@@ -119,16 +122,16 @@ def get_student_placement_readiness(
     coding: Optional[float] = Query(None, ge=0.0, le=100.0),
     mock_interviews: Optional[float] = Query(None, ge=0.0, le=100.0),
     technical_skills: Optional[float] = Query(None, ge=0.0, le=100.0),
-    current_user: Dict[str, Any] = Depends(get_authenticated_user),
+    current_user: AuthenticatedUser = Depends(get_current_user),
 ) -> PlacementReadinessResponse:
-    """Computes placement readiness for an enrolled student enforcing RBAC."""
+    """Computes placement readiness for an enrolled student."""
     student = student_service.get_student_by_id(student_id)
     if not student:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Student '{student_id}' not found",
         )
-    check_student_access(student_id, current_user)
+    verify_student_access(student_id=student_id, current_user=current_user)
     result = scoring_service.get_student_placement_readiness(
         student_id=student_id,
         aptitude=aptitude,

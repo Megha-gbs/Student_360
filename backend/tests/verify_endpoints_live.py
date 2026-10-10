@@ -43,8 +43,8 @@ def run_verification():
         res = client.get("/students")
         assert res.status_code == 200, f"Expected 200, got {res.status_code}: {res.text}"
         data = res.json()
-        assert data["total"] == 10
-        assert len(data["students"]) == 10
+        assert data["total"] == 4424
+        assert len(data["students"]) == 4424
         s1 = data["students"][0]
         print(f"  -> PASS: Total students: {data['total']}. First student: {s1['student_id']}, Risk: {s1['risk_score']} ({s1['risk_level']}), Trend: {s1['trend']}")
 

@@ -117,29 +117,32 @@ export default function StudentMLRetention() {
       {/* Section A: Live Risk & Trajectory */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <div className="lg:col-span-4">
-          <RiskCard student={student} />
+          <RiskCard
+            riskScore={student.risk_score}
+            riskLevel={student.risk_level}
+            dropoutProbability={student.dropout_probability}
+            trend={student.trend}
+            modelVersion={student.model_version || 'student360_xgb_v2_real_features'}
+          />
         </div>
         <div className="lg:col-span-8">
           <RiskTrajectory
-            studentId={student.student_id}
-            trajectoryData={student.trajectory_data}
-            features={student.features}
-            currentRiskScore={student.risk_score}
+            trajectory={student.trajectory}
           />
         </div>
       </div>
 
       {/* Section B: Top SHAP Reasons */}
-      <div className="card-panel p-6">
-        <ShapReasons topReasons={student.top_reasons} />
+      <div className="bg-white border border-[#D0D0D0] rounded p-6 shadow-sm">
+        <ShapReasons reasons={student.top_reasons} />
       </div>
 
       {/* Section C: What-If Simulation Engine */}
-      <div className="card-panel p-6">
+      <div className="bg-white border border-[#D0D0D0] rounded p-6 shadow-sm">
         <WhatIfPanel
           studentId={student.student_id}
-          baseFeatures={student.features}
-          baseRiskScore={student.risk_score}
+          originalRisk={student.risk_score}
+          studentData={student}
         />
       </div>
     </div>

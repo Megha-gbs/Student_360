@@ -8,7 +8,6 @@ import {
   FileText,
   Clock,
   CreditCard,
-  LineChart,
   User,
   Users,
   GraduationCap,
@@ -20,7 +19,6 @@ import {
   ChevronRight,
   LogOut,
   Sparkles,
-  BookOpen,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -34,13 +32,13 @@ export default function AppSidebar({ isOpenMobile, onCloseMobile }) {
   const studentNav = [
     { label: 'Dashboard', path: '/student/dashboard', icon: LayoutDashboard },
     { label: 'Daily Timetable', path: '/student/timetable', icon: Calendar },
-    { label: 'Attendance', path: '/student/attendance', icon: CheckSquare, badge: 'Low' },
+    { label: 'Attendance', path: '/student/attendance', icon: CheckSquare, dot: 'amber' },
     { label: 'Marks & Results', path: '/student/marks', icon: Award },
-    { label: 'Assignments', path: '/student/assignments', icon: FileText, badge: '2 Due' },
+    { label: 'Assignments', path: '/student/assignments', icon: FileText },
     { label: 'Examinations', path: '/student/exams', icon: Clock },
     { label: 'Career & Timeline', path: '/student/timeline', icon: Sparkles },
     { label: 'Fees & Dues', path: '/student/fees', icon: CreditCard },
-    { label: 'ML Retention AI', path: '/student/ml-retention', icon: BrainCircuit, highlight: true },
+    { label: 'ML Retention Analytics', path: '/student/ml-retention', icon: BrainCircuit },
     { label: 'My Profile', path: '/student/profile', icon: User },
   ];
 
@@ -48,11 +46,11 @@ export default function AppSidebar({ isOpenMobile, onCloseMobile }) {
     { label: 'Dashboard', path: '/faculty/dashboard', icon: LayoutDashboard },
     { label: 'Teaching Schedule', path: '/faculty/timetable', icon: Calendar },
     { label: 'Class & Students', path: '/faculty/students', icon: Users },
-    { label: 'Mark Attendance', path: '/faculty/attendance', icon: CheckSquare, badge: 'Pending' },
+    { label: 'Mark Attendance', path: '/faculty/attendance', icon: CheckSquare, dot: 'amber' },
     { label: 'Internal Marks', path: '/faculty/marks', icon: Award },
     { label: 'Assignments', path: '/faculty/assignments', icon: FileText },
     { label: 'Announcements', path: '/faculty/announcements', icon: BellRing },
-    { label: 'Priority Retention Queue', path: '/faculty/retention', icon: BrainCircuit, highlight: true, badge: 'AI' },
+    { label: 'Priority Retention Queue', path: '/faculty/retention', icon: BrainCircuit },
     { label: 'My Profile', path: '/faculty/profile', icon: User },
   ];
 
@@ -67,17 +65,11 @@ export default function AppSidebar({ isOpenMobile, onCloseMobile }) {
     { label: 'Fee Management', path: '/admin/fees', icon: CreditCard },
     { label: 'Official Notices', path: '/admin/announcements', icon: BellRing },
     { label: 'Users & Audit Logs', path: '/admin/users-audit', icon: ShieldCheck },
-    { label: 'ML Cohort Intelligence', path: '/admin/cohort-intelligence', icon: BrainCircuit, highlight: true, badge: 'AI' },
+    { label: 'ML Cohort Intelligence', path: '/admin/cohort-intelligence', icon: BrainCircuit },
     { label: 'Profile Settings', path: '/admin/profile', icon: User },
   ];
 
   const navItems = role === 'admin' ? adminNav : role === 'faculty' ? facultyNav : studentNav;
-
-  const roleColors = {
-    student: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800',
-    faculty: 'bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-400 border-blue-200 dark:border-blue-800',
-    admin: 'bg-purple-50 text-purple-700 dark:bg-purple-950/60 dark:text-purple-400 border-purple-200 dark:border-purple-800',
-  };
 
   const handleLogout = () => {
     logout();
@@ -89,31 +81,32 @@ export default function AppSidebar({ isOpenMobile, onCloseMobile }) {
       {/* Mobile Backdrop */}
       {isOpenMobile && (
         <div
-          className="fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-sm lg:hidden"
+          className="fixed inset-0 z-40 bg-black/40 lg:hidden"
           onClick={onCloseMobile}
         />
       )}
 
       <aside
-        className={`fixed top-0 bottom-0 left-0 z-40 flex flex-col bg-white dark:bg-[#111625] border-r border-slate-200/90 dark:border-surface-darkborder transition-all duration-300 ease-in-out ${
-          collapsed ? 'w-20' : 'w-64'
+        className={`fixed top-0 bottom-0 left-0 z-40 flex flex-col bg-[#00338D] text-white border-r border-[#00225D] transition-all duration-200 ease-in-out ${
+          collapsed ? 'w-16' : 'w-[240px]'
         } ${
           isOpenMobile ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         }`}
+        style={{ width: collapsed ? '64px' : '240px' }}
       >
         {/* Brand Header */}
-        <div className="h-16 flex items-center justify-between px-4 border-b border-slate-200/80 dark:border-surface-darkborder">
-          <div className="flex items-center gap-3 overflow-hidden">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-purple-500 flex items-center justify-center text-white shadow-md shadow-indigo-500/20 flex-shrink-0">
-              <GraduationCap className="w-5 h-5" />
+        <div className="h-14 flex items-center justify-between px-3.5 border-b border-[#00225D] bg-[#002B7A]">
+          <div className="flex items-center gap-2.5 overflow-hidden">
+            <div className="w-7 h-7 rounded-[3px] bg-white/20 flex items-center justify-center text-white flex-shrink-0 font-bold text-xs">
+              360
             </div>
             {!collapsed && (
               <div className="flex flex-col">
-                <span className="font-extrabold text-base tracking-tight text-slate-900 dark:text-white flex items-center gap-1.5">
-                  Student<span className="text-indigo-600 dark:text-indigo-400">360</span>
+                <span className="font-bold text-[14px] tracking-tight text-white leading-none">
+                  Student360
                 </span>
-                <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400">
-                  Campus Operating System
+                <span className="text-[10px] text-white/70 tracking-wider mt-0.5 font-normal">
+                  Smart Campus Analytics
                 </span>
               </div>
             )}
@@ -122,38 +115,32 @@ export default function AppSidebar({ isOpenMobile, onCloseMobile }) {
           {/* Desktop Collapse Toggle */}
           <button
             onClick={() => setCollapsed(!collapsed)}
-            className="hidden lg:flex p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            className="hidden lg:flex p-1 rounded-[3px] text-white/70 hover:text-white hover:bg-white/10 transition-colors"
             title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           >
             {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
           </button>
         </div>
 
-        {/* Current Active Persona Card */}
+        {/* Current Active Persona Strip */}
         {!collapsed && user && (
-          <div className="p-3 mx-3 my-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/70 dark:border-surface-darkborder flex items-center gap-3">
-            <img
-              src={user.avatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=user'}
-              alt={user.name}
-              className="w-10 h-10 rounded-full object-cover ring-2 ring-indigo-500/30 flex-shrink-0"
-            />
+          <div className="px-3 py-2 border-b border-[#00225D] bg-[#00276D]/70 flex items-center gap-2.5">
+            <div className="w-7 h-7 rounded-[3px] bg-white/20 text-white font-bold flex items-center justify-center text-xs flex-shrink-0">
+              {(user.name || 'U')[0]}
+            </div>
             <div className="min-w-0 flex-1">
-              <p className="text-xs font-bold text-slate-900 dark:text-slate-100 truncate">
-                {user.name}
+              <p className="text-[12px] font-bold text-white truncate leading-tight">
+                {user.name || 'Staff User'}
               </p>
-              <span
-                className={`inline-block text-[10px] font-bold px-2 py-0.5 rounded-full border uppercase tracking-wider ${
-                  roleColors[role] || roleColors.student
-                }`}
-              >
-                {role}
-              </span>
+              <p className="text-[10.5px] text-white/70 uppercase tracking-wider">
+                {role} portal
+              </p>
             </div>
           </div>
         )}
 
         {/* Navigation List */}
-        <div className="flex-1 overflow-y-auto px-3 py-2 space-y-1">
+        <nav className="flex-1 overflow-y-auto py-1.5 space-y-0.5">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname.startsWith(item.path);
@@ -164,50 +151,33 @@ export default function AppSidebar({ isOpenMobile, onCloseMobile }) {
                 to={item.path}
                 onClick={onCloseMobile}
                 title={collapsed ? item.label : undefined}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium transition-all group ${
+                className={`flex items-center gap-2.5 px-3 py-2 text-[12.5px] transition-colors relative ${
                   isActive
-                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/25 font-semibold'
-                    : item.highlight
-                    ? 'bg-purple-50 dark:bg-purple-950/30 text-purple-700 dark:text-purple-300 hover:bg-purple-100 dark:hover:bg-purple-950/60 font-semibold'
-                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100'
+                    ? 'bg-white/15 text-white font-bold border-l-[3px] border-white pl-[9px]'
+                    : 'text-white/85 hover:bg-white/10 hover:text-white border-l-[3px] border-transparent pl-[9px]'
                 }`}
               >
-                <Icon
-                  className={`w-4 h-4 flex-shrink-0 transition-transform group-hover:scale-110 ${
-                    isActive
-                      ? 'text-white'
-                      : item.highlight
-                      ? 'text-purple-600 dark:text-purple-400'
-                      : 'text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-200'
-                  }`}
-                />
+                <Icon className="w-4 h-4 flex-shrink-0 text-white" />
                 {!collapsed && (
                   <span className="truncate flex-1">{item.label}</span>
                 )}
-                {!collapsed && item.badge && (
+                {!collapsed && item.dot && (
                   <span
-                    className={`px-1.5 py-0.5 text-[10px] font-bold rounded-md uppercase ${
-                      isActive
-                        ? 'bg-white/20 text-white'
-                        : item.badge === 'Low'
-                        ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'
-                        : 'bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300'
-                    }`}
-                  >
-                    {item.badge}
-                  </span>
+                    className="w-2 h-2 rounded-full bg-amber-400 flex-shrink-0"
+                    title="Action needed"
+                  />
                 )}
               </NavLink>
             );
           })}
-        </div>
+        </nav>
 
         {/* Footer Actions */}
-        <div className="p-3 border-t border-slate-200/80 dark:border-surface-darkborder space-y-1">
+        <div className="p-2 border-t border-[#00225D] bg-[#002B7A]">
           <button
             onClick={handleLogout}
-            title={collapsed ? 'Logout' : undefined}
-            className="w-full flex items-center gap-3 px-3 py-2 text-xs font-medium text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-xl transition-colors"
+            title={collapsed ? 'Sign Out' : undefined}
+            className="w-full flex items-center gap-2.5 px-2.5 py-1.5 text-[12px] text-white/80 hover:text-white hover:bg-white/10 rounded-[3px] transition-colors"
           >
             <LogOut className="w-4 h-4 flex-shrink-0" />
             {!collapsed && <span>Sign Out</span>}

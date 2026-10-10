@@ -14,12 +14,15 @@ import {
   Clock,
   FileCheck,
   AlertCircle,
+  RefreshCw,
 } from 'lucide-react';
 import { adminApi, verificationApi } from '../../services/api';
 import StatusBadge from '../../components/StatusBadge';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 
 export default function FacultyStudents() {
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('roster'); // 'roster' | 'verifications'
   const [students, setStudents] = useState([]);
   const [verifications, setVerifications] = useState([]);
@@ -33,13 +36,13 @@ export default function FacultyStudents() {
     setLoading(true);
     try {
       const [stuData, verData] = await Promise.all([
-        adminApi.getStudents(),
+        adminApi.getStudents({ faculty_id: user?.id || 'FAC-CS101' }),
         verificationApi.getPendingVerifications(),
       ]);
       setStudents(stuData || []);
       setVerifications(verData || []);
     } catch (err) {
-      console.error(err);
+      console.error('Error loading faculty cohort records:', err);
     } finally {
       setLoading(false);
     }
@@ -47,7 +50,7 @@ export default function FacultyStudents() {
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [user]);
 
   const handleVerify = async (entryId, status) => {
     try {
@@ -66,16 +69,16 @@ export default function FacultyStudents() {
 
   const filteredStudents = students.filter(
     (s) =>
-      s.name.toLowerCase().includes(search.toLowerCase()) ||
-      s.roll_number.toLowerCase().includes(search.toLowerCase()) ||
-      s.student_id.toLowerCase().includes(search.toLowerCase())
+      s.name?.toLowerCase().includes(search.toLowerCase()) ||
+      s.roll_number?.toLowerCase().includes(search.toLowerCase()) ||
+      s.student_id?.toLowerCase().includes(search.toLowerCase())
   );
 
   const filteredVerifications = verifications.filter(
     (v) =>
-      v.student_id.toLowerCase().includes(search.toLowerCase()) ||
-      v.title.toLowerCase().includes(search.toLowerCase()) ||
-      v.category.toLowerCase().includes(search.toLowerCase())
+      v.student_id?.toLowerCase().includes(search.toLowerCase()) ||
+      v.title?.toLowerCase().includes(search.toLowerCase()) ||
+      v.category?.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
@@ -83,21 +86,21 @@ export default function FacultyStudents() {
       {/* Header & Tabs */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+          <h2 className="text-xl font-bold text-[#1A1A1A] tracking-tight flex items-center gap-2">
             <span>Faculty Cohort & Mentoring Portal</span>
           </h2>
-          <p className="text-xs text-slate-500 dark:text-slate-400">
-            Roster of students enrolled in your course sections, mentoring cohorts, and achievement review queue
+          <p className="text-xs text-[#767676]">
+            Authorized roster of students enrolled in your course sections, mentoring cohorts, and achievement review queue
           </p>
         </div>
 
         <div className="flex items-center gap-2">
           <button
             onClick={() => setActiveTab('roster')}
-            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+            className={`px-3.5 py-2 rounded text-xs font-bold transition-all flex items-center gap-1.5 ${
               activeTab === 'roster'
-                ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20'
-                : 'bg-white dark:bg-surface-darkcard text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-surface-darkborder hover:bg-slate-50'
+                ? 'bg-[#00338D] text-white shadow-sm'
+                : 'bg-white text-[#1A1A1A] border border-[#D0D0D0] hover:bg-slate-50'
             }`}
           >
             <Users className="w-3.5 h-3.5" />
@@ -105,10 +108,10 @@ export default function FacultyStudents() {
           </button>
           <button
             onClick={() => setActiveTab('verifications')}
-            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+            className={`px-3.5 py-2 rounded text-xs font-bold transition-all flex items-center gap-1.5 ${
               activeTab === 'verifications'
-                ? 'bg-purple-600 text-white shadow-md shadow-purple-600/20'
-                : 'bg-white dark:bg-surface-darkcard text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-surface-darkborder hover:bg-slate-50'
+                ? 'bg-[#00338D] text-white shadow-sm'
+                : 'bg-white text-[#1A1A1A] border border-[#D0D0D0] hover:bg-slate-50'
             }`}
           >
             <Sparkles className="w-3.5 h-3.5" />

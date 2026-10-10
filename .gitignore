@@ -21,16 +21,15 @@ wheels/
 .installed.cfg
 *.egg
 
-# Testing & Cache
+# Testing & Linters
 .pytest_cache/
 .coverage
 htmlcov/
 .tox/
 .nox/
-scratch/
 
 # Virtual Environments
-.venv/
+.venv
 venv/
 ENV/
 env.bak/
@@ -38,11 +37,7 @@ venv.bak/
 
 # Environment variables & secrets
 .env
-.env.local
-.env.*.local
 !.env.example
-backend/.env
-frontend/.env
 
 # IDE & Editor
 .vscode/
@@ -55,13 +50,12 @@ frontend/.env
 Thumbs.db
 desktop.ini
 
-# Frontend Node & Build
+# Frontend
 node_modules/
 frontend/node_modules/
 frontend/dist/
-dist/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-pnpm-debug.log*
-.turbo
+*.log
+

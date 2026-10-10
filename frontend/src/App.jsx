@@ -368,7 +368,23 @@ export default function App() {
           }
         />
         <Route
+          path="/student360/:id"
+          element={
+            <ProtectedRoute>
+              <Student360 />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/cohort"
+          element={
+            <ProtectedRoute allowedRoles={['faculty', 'admin']}>
+              <CohortInsights />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/cohort-insights"
           element={
             <ProtectedRoute allowedRoles={['faculty', 'admin']}>
               <CohortInsights />

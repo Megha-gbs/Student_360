@@ -15,7 +15,6 @@ from backend.app.main import app
 from backend.app.services.student_service import student_service
 
 client = TestClient(app)
-ADMIN_AUTH = {"Authorization": "Bearer student360_jwt_ADM001_test"}
 
 
 def test_simulate_valid_features():
@@ -30,7 +29,7 @@ def test_simulate_valid_features():
         "features": base_features,
     }
 
-    response = client.post("/simulate", json=payload, headers=ADMIN_AUTH)
+    response = client.post("/simulate", json=payload)
     assert response.status_code == 200
     data = response.json()
 
@@ -54,7 +53,7 @@ def test_simulate_missing_feature_rejected():
         "features": base_features,
     }
 
-    response = client.post("/simulate", json=payload, headers=ADMIN_AUTH)
+    response = client.post("/simulate", json=payload)
     assert response.status_code == 400
     data = response.json()
     assert "detail" in data
@@ -71,7 +70,7 @@ def test_simulate_invented_feature_rejected():
         "features": base_features,
     }
 
-    response = client.post("/simulate", json=payload, headers=ADMIN_AUTH)
+    response = client.post("/simulate", json=payload)
     assert response.status_code == 400
     data = response.json()
     assert "detail" in data
@@ -88,7 +87,7 @@ def test_simulate_target_column_rejected():
         "features": base_features,
     }
 
-    response = client.post("/simulate", json=payload, headers=ADMIN_AUTH)
+    response = client.post("/simulate", json=payload)
     assert response.status_code == 400
     data = response.json()
     assert "detail" in data

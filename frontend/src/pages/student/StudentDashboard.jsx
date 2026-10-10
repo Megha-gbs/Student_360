@@ -10,6 +10,8 @@ import {
   ArrowRight,
   Sparkles,
   BookOpen,
+  User,
+  ShieldCheck,
 } from 'lucide-react';
 import MetricCard from '../../components/MetricCard';
 import TimetableWidget from '../../components/TimetableWidget';
@@ -17,6 +19,7 @@ import AttendanceOverview from '../../components/AttendanceOverview';
 import AssignmentTable from '../../components/AssignmentTable';
 import AnnouncementPanel from '../../components/AnnouncementPanel';
 import AcademicPerformanceChart from '../../components/AcademicPerformanceChart';
+import AchievementsSection from '../../components/AchievementsSection';
 import { useAuth } from '../../context/AuthContext';
 import {
   attendanceApi,
@@ -73,61 +76,58 @@ export default function StudentDashboard() {
   const pendingAssignments = assignments.filter((a) => !a.my_submission).length;
 
   return (
-    <div className="space-y-6">
-      {/* A. Welcome Header */}
-      <div className="card-panel p-6 bg-gradient-to-r from-indigo-900 via-indigo-800 to-purple-900 text-white relative overflow-hidden">
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="space-y-5">
+      {/* A. Institutional Student Identity Card (Screenshot 2 Reference) */}
+      <div className="bg-white border border-[#D0D0D0] rounded p-5">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <img
               src={user?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'}
               alt={user?.name || 'Student'}
-              className="w-16 h-16 rounded-2xl object-cover ring-4 ring-white/20 shadow-lg flex-shrink-0"
+              className="w-16 h-16 rounded object-cover border border-[#D0D0D0] flex-shrink-0"
             />
             <div>
-              <div className="flex items-center gap-2">
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-white/20 text-white">
+              <div className="flex flex-wrap items-center gap-2">
+                <h1 className="text-xl font-bold text-[#1A1A1A] tracking-tight">
+                  {user?.name || 'Sarah Connor'}
+                </h1>
+                <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-[#00338D]/10 text-[#00338D] border border-[#00338D]/20">
                   {user?.program || 'B.Des Animation & Multimedia'}
                 </span>
-                <span className="text-indigo-200 text-xs font-mono">
+                <span className="text-xs text-[#767676] font-mono">
                   Roll: {user?.roll_number || '2024-AMD-001'}
                 </span>
               </div>
-              <h2 className="text-xl sm:text-2xl font-black tracking-tight mt-1">
-                Welcome back, {user?.name || 'Sarah Connor'}!
-              </h2>
-              <p className="text-xs text-indigo-200 mt-0.5">
-                Academic Year 2024-2025 • Semester {user?.semester || 2} • {user?.department || 'Animation & Multimedia Design'}
+              <p className="text-xs text-[#4A4A4A] mt-1">
+                Student ID: <strong className="font-mono text-[#1A1A1A]">{studentId}</strong> • Academic Year 2024–2025 • Semester {user?.semester || 2} • {user?.department || 'Animation & Multimedia Design'}
               </p>
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2 self-start md:self-center">
             <button
               onClick={() => navigate('/student/timeline')}
-              className="px-3.5 py-2 bg-white/10 hover:bg-white/20 backdrop-blur-md text-white font-semibold rounded-xl text-xs transition-all border border-white/20 flex items-center gap-1.5"
+              className="px-3 py-1.5 bg-white hover:bg-[#F5F5F5] text-[#1A1A1A] font-semibold rounded text-xs border border-[#D0D0D0] transition-colors flex items-center gap-1.5"
             >
-              <Award className="w-3.5 h-3.5" />
+              <Award className="w-3.5 h-3.5 text-[#00338D]" />
               Career Timeline
             </button>
             <button
               onClick={() => navigate('/student/timetable')}
-              className="px-3.5 py-2 bg-white/10 hover:bg-white/20 backdrop-blur-md text-white font-semibold rounded-xl text-xs transition-all border border-white/20 flex items-center gap-1.5"
+              className="px-3 py-1.5 bg-white hover:bg-[#F5F5F5] text-[#1A1A1A] font-semibold rounded text-xs border border-[#D0D0D0] transition-colors flex items-center gap-1.5"
             >
-              <Calendar className="w-3.5 h-3.5" />
+              <Calendar className="w-3.5 h-3.5 text-[#0091DA]" />
               Today's Classes
             </button>
             <button
               onClick={() => navigate('/student/ml-retention')}
-              className="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white font-bold rounded-xl text-xs transition-all shadow-md shadow-purple-900/40 flex items-center gap-1.5"
+              className="px-3.5 py-1.5 bg-[#00338D] hover:bg-[#002266] text-white font-bold rounded text-xs transition-colors flex items-center gap-1.5"
             >
               <Sparkles className="w-3.5 h-3.5" />
               ML Retention Insights
             </button>
           </div>
         </div>
-
-        {/* Ambient background blur */}
-        <div className="absolute -right-10 -bottom-10 w-64 h-64 bg-purple-500/20 rounded-full blur-3xl pointer-events-none" />
       </div>
 
       {/* B. Academic Summary Metric Cards */}
@@ -195,8 +195,11 @@ export default function StudentDashboard() {
         />
       </div>
 
+      {/* Section 4: Achievements & Student Development Portfolio */}
+      <AchievementsSection studentId={studentId} allowSubmit={true} />
+
       {/* C & D. Timetable and Attendance */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
         <div className="lg:col-span-7">
           <TimetableWidget schedule={timetable} />
         </div>
@@ -209,7 +212,7 @@ export default function StudentDashboard() {
       <AcademicPerformanceChart marksData={marks} />
 
       {/* Assignments & Announcements */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
         <div className="lg:col-span-7">
           <AssignmentTable
             assignments={assignments}
@@ -228,3 +231,4 @@ export default function StudentDashboard() {
     </div>
   );
 }
+

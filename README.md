@@ -1,249 +1,235 @@
-# Student360 — Integrated Smart Campus Analytics & Early Intervention Platform
-
-**KPMG Smart Campus Analytics Challenge**  
-*Integrated, Stabilized, and Verified Deliverable*
+# Student360
+Student360 is an AI-powered student analytics platform for KPMG HacXLerate 2026. It uses predictive analytics and explainable AI to identify at-risk students, analyze academic performance, and provide actionable insights through role-based dashboards, enabling timely interventions and improved student success.
 
 ---
 
-## 1. Project Overview
+## 🎯 Purpose & Problem Statement
 
-**Student360** is an enterprise-grade higher-education analytics and student retention platform. It integrates machine learning risk prediction with explainable AI (SHAP), dynamic What-If simulation, human-in-the-loop intervention governance, multi-dimensional success scoring, and comprehensive institutional campus management portals.
+Higher education institutions face persistent challenges in retaining at-risk students before academic difficulties become irreversible. Conventional institutional reporting is largely retroactive—identifying student struggles only after course failure or semester withdrawal occurs.
 
-This unified build reconciles and solidifies all project requirements into a single, cohesive, production-ready codebase (`Student360_Final_Integrated`).
+**Student360** transforms student support from reactive remediation into proactive, science-backed retention. Built for **KPMG HacXLerate 2026**, the platform combines predictive machine learning, localized TreeSHAP explainability, counterfactual what-if simulations, and role-based institutional management into a unified command center. 
+
+Crucially, Student360 enforces a strict **Human-in-the-Loop** operating model: predictive models serve solely as advisory decision support, ensuring that academic advisors and faculty retain full oversight and approval authority over all interventions.
 
 ---
 
-## 2. System Architecture
+## 🔑 Key Features
 
-```mermaid
-graph TD
-    Client["React 19 + Vite Frontend\n(Tailwind CSS, Lucide Icons)"] -->|REST / JSON| Gateway["FastAPI API Gateway\n(Port 8000)"]
-    
-    subgraph Security ["Security & Governance Layer"]
-        RBAC["Backend-Enforced RBAC\n(Admin, Faculty, Student)"]
-        Audit["Audit Logging & Verification"]
-    end
-    
-    Gateway --> RBAC
-    
-    subgraph CoreServices ["Core Services"]
-        StudentSvc["Student & Queue Service"]
-        SimSvc["What-If Simulation Engine"]
-        IntervSvc["Intervention & Outcome Service"]
-        CohortSvc["Cohort Analytics & Global SHAP"]
-        ScoringSvc["Holistic Success & Placement Scoring"]
-        CSVSvc["36-Feature CSV Validation Engine"]
-        CollegeSvc["Institutional Portals (Schedule, Fees, Timeline)"]
-    end
-    
-    RBAC --> CoreServices
-    
-    subgraph MLEngine ["Machine Learning & Explainability Engine"]
-        XGB["XGBoost Classifier v1\n(Frozen 36-Feature Schema)"]
-        Prep["scikit-learn Preprocessor"]
-        SHAP["TreeSHAP Explainer + NumPy 2.x Shim"]
-        Traj["Real Sem 1 to Sem 2 Trajectory Calculator"]
-    end
-    
-    SimSvc --> MLEngine
-    CohortSvc --> MLEngine
-    StudentSvc --> MLEngine
+### 1. Risk Analytics & Triage
+- **Priority Queue**: Triages the entire student cohort by real-time dropout probability with multi-tiered risk filtering (High, Medium, Low) and server-side search.
+- **Student 360 Holistic Profile**: Centralizes demographic indicators, fee payment standing, academic progress, and historical trajectories.
+- **Multi-Class Outcome Forecasting**: Estimates probabilities across three discrete student outcomes (`Dropout`, `Enrolled`, `Graduate`).
+
+### 2. Explainable AI & Counterfactual Simulation
+- **Localized SHAP Attributions**: Computes per-student feature impacts using TreeSHAP, isolating the specific institutional, financial, and academic drivers that elevate or reduce risk.
+- **What-If Counterfactual Simulator**: Allows advisors to simulate academic interventions (e.g., passing retake units or grade improvements) and visualize projected risk trajectory deltas prior to prescribing actions.
+- **Global Cohort Feature Importance**: Identifies macro retention trends across degree programs and academic terms.
+
+### 3. Human-in-the-Loop Intervention Management
+- **Advisory Decision Support**: Automatically drafts personalized intervention plans (e.g., peer tutoring, bursar payment plans, faculty mentoring).
+- **Mandatory Advisor Approval**: Interventions remain in a `Pending Human Approval` state until verified and authorized by an institutional advisor.
+- **Simulated Demonstration Outcome Projections**: Projects potential recovery paths while transparently labeling simulated demonstration indicators.
+
+### 4. Enterprise College Operations
+- **Role-Based Portals**: Tailored interfaces for Administrators, Faculty Members, and Students.
+- **Academic Operations**: Integrated modules for class timetables, attendance tracking, internal examination schedules, assignment submissions, marks management, and institutional announcements.
+- **Audit Logging**: Tracks administrative operations, student status modifications, and CSV cohort data imports.
+
+---
+
+## 👥 Role-Based Dashboards
+
+| Role | Primary Capabilities & Workflows |
+| :--- | :--- |
+| **Institutional Admin** | System-wide retention metrics, department overviews, batch CSV student enrollment import, fee tracking, user role management, and audit log monitoring. |
+| **Faculty Member** | Course-level student queues, class attendance recording, assignment creation and grading, marks updates, timetable access, and localized student risk alerts. |
+| **Student** | Personal risk status overview, academic trajectory charts, timetable schedule, attendance percentages, upcoming examinations, fee payment status, and institutional announcements. |
+
+---
+
+## 🧠 Machine Learning & Explainability Pipeline
+
+Student360 leverages a production-grade machine learning architecture trained and evaluated on the validated UCI Student Performance & Dropout dataset.
+
+### Pipeline Architecture
+```
+┌─────────────────────────┐
+│     UCI Cohort Data     │ (4,424 Records, 36 Baseline Features)
+└────────────┬────────────┘
+             │
+             ▼
+┌─────────────────────────┐
+│ Preprocessing Pipeline  │ (StandardScaler, OneHotEncoder, Mean Imputer)
+│ models/preprocessor.joblib│ Fitted strictly on 70% Training Split
+└────────────┬────────────┘
+             │
+             ▼
+┌─────────────────────────┐
+│   XGBoost Classifier    │ (Version: student360_xgb_v2_real_features)
+│ models/xgboost_model_v1 │ Multi-class Softprob (Dropout, Enrolled, Graduate)
+└────────────┬────────────┘
+             │
+     ┌───────┴───────┐
+     ▼               ▼
+┌───────────┐ ┌───────────┐
+│ Real-Time │ │  TreeSHAP │ Local & Global Feature Attribution
+│ Risk Prob │ │ Explainer │ (Mean |SHAP| Impact Scoring)
+└───────────┘ └───────────┘
 ```
 
----
+### Verified Model Performance
 
-## 3. Core Features & Verified Capabilities
+Evaluated on held-out test data (`N=664`) partitioned with stratified splitting (Seed 42):
 
-1. **Role-Based Portals (RBAC):**
-   - **Administrator Portal:** System configuration, audit logs, fee summaries, user provisioning, CSV batch ingestion.
-   - **Faculty / Advisor Portal:** Assigned advisee priority queues, milestone verification, intervention drafting & approval.
-   - **Student Portal:** Personal risk trajectory, self-reported achievements/timeline, class timetable, fee records.
-2. **Priority Queue & Student 360 Profile:**
-   - Real-time risk sorting (High $\ge 70$, Medium $30-69$, Low $< 30$).
-   - Comprehensive student view displaying demographic attributes, academic standing, holistic success score, and placement readiness tier.
-3. **Local & Global Explainability (TreeSHAP):**
-   - Per-student local risk factor attribution identifying top risk and protective drivers.
-   - Cohort-wide aggregate risk distribution and mean absolute SHAP feature importance.
-4. **Real Academic Progression Trajectory:**
-   - Evaluates actual Semester 1 to Semester 2 delta based on approved curricular units and grades.
-   - Categorizes trajectory as `improving`, `declining`, or `stable`. Never invents synthetic weekly data.
-5. **Counterfactual What-If Simulation:**
-   - Live sensitivity modeling against the frozen 36 UCI features schema.
-   - Evaluates modified student inputs without retraining or claiming false causal guarantees.
-6. **Human-in-the-Loop Intervention & Outcome Demonstration:**
-   - AI drafts intervention strategies that require human faculty review and approval.
-   - Simulated post-intervention outcome projections prominently marked with `SIMULATED DEMONSTRATION OUTCOME` badge.
-7. **Holistic Success Score & Placement Readiness:**
-   - **Success Score (5 Pillars):** Academic performance, attendance, LMS engagement, campus activities, placement readiness.
-   - **Placement Readiness (4 Competencies):** Aptitude, coding assessments, mock interviews, technical skills.
-   - Dynamic weight renormalization for partial data.
-8. **Student Education & Career Timeline:**
-   - Chronological milestone tracker with self-reporting and faculty verification workflow.
-9. **Validated 36-Feature CSV Import:**
-   - Pre-ingestion validation checking column headers, data types, value boundaries, and duplicate IDs before database commit.
+| Metric | Training Split (`N=3096`) | Validation Split (`N=664`) | Held-out Test Split (`N=664`) |
+| :--- | :---: | :---: | :---: |
+| **Accuracy** | 89.18% | 75.75% | **80.27%** |
+| **ROC-AUC (OvR Macro)** | 97.23% | 88.37% | **91.46%** |
+| **ROC-AUC (OvR Weighted)** | 97.47% | 88.80% | **92.20%** |
+| **Dropout Precision** | 89.37% | 71.93% | **85.20%** |
+| **Dropout Recall** | 84.14% | 67.75% | **78.04%** |
+| **Dropout F1-Score** | 86.23% | 68.96% | **81.46%** |
+
+### Top Risk Attribution Drivers (SHAP)
+1. **Curricular units 2nd semester (approved)**: Strongest indicator of academic momentum.
+2. **Curricular units 1st semester (approved)**: Early academic baseline indicator.
+3. **Tuition fees up to date**: Major non-academic retention threshold.
+4. **Curricular units 2nd semester (grade)**: Academic quality score.
+5. **Debtor status & Scholarship status**: Financial stability flags.
+6. **Age at enrollment**: Non-traditional student transition risk factor.
 
 ---
 
-## 4. Quick Start (Windows PowerShell)
+## 📈 Semester Trajectory & What-If Simulation
+
+### Semester-over-Semester Trajectory
+Unlike synthetic time-series generators, Student360 maps historical trajectories strictly from real curricular records:
+- **Semester 1**: Enrolled units, approved units, average evaluation grades.
+- **Semester 2**: Longitudinal progression demonstrating improvement, stagnation, or decline.
+
+### Counterfactual What-If Analysis
+Advisors can test hypothetical academic scenarios to determine viable recovery pathways:
+- Adjust second-semester units passed (0 to 6).
+- Adjust grade expectations (0.0 to 20.0 scale).
+- Recalculate model inference dynamically with baseline delta comparison.
+
+---
+
+## 💻 Technology Stack
+
+### Backend
+- **Framework**: FastAPI (Python 3.10+, verified on Python 3.13)
+- **ASGI Server**: Uvicorn
+- **Machine Learning**: XGBoost (`xgboost 3.4.1`), Scikit-Learn (`scikit-learn 1.4.2`), Joblib
+- **Explainability**: SHAP (`shap 0.44.1`)
+- **Data Processing**: Pandas, NumPy
+- **Validation**: Pydantic v2
+
+### Frontend
+- **Framework**: React 18
+- **Build Tool**: Vite 6
+- **Styling**: Tailwind CSS 3
+- **Icons**: Lucide React
+- **Data Visualization**: Recharts
+- **HTTP Client**: Axios with Bearer token interceptor
+- **Routing**: React Router v6
+
+---
+
+## 📊 Dataset & Responsible AI Governance
+
+### Dataset Reference
+- **Source**: UCI Machine Learning Repository — *Predict Students' Dropout and Academic Success*
+- **Size**: 4,424 student records across 17 undergraduate degree programs
+- **Features**: 36 demographic, socio-economic, and academic baseline features
+
+### Responsible AI & Ethical Safeguards
+1. **Advisory Decision Support**: AI outputs are strictly informative. The platform does not take automated disciplinary, enrollment, or financial actions.
+2. **Human Oversight**: Every intervention requires explicit human review and authorization by certified advisors or faculty.
+3. **Transparent Explanations**: Every prediction is accompanied by verifiable SHAP feature attributions so educators understand the "why" behind risk scores.
+4. **Data Integrity & Labeling**: Demonstration records, matched features, and synthetic counterfactual outcomes are explicitly labeled in the interface.
+
+---
+
+## 🚀 Installation & Local Setup
 
 ### Prerequisites
-- **Python 3.10+** (verified on Python 3.14 with NumPy 2.x compatibility shim)
-- **Node.js 18+** and **npm**
+- **Python**: Version 3.10 or higher
+- **Node.js**: Version 18 or higher (Node.js 20+ recommended)
+- **Git**
 
-### Step 1: Clone / Navigate to Directory
-```powershell
-cd Student360_Final_Integrated
+### 1. Clone & Navigate to Project
+```bash
+git clone <repository-url>
+cd Student360-main
 ```
 
-### Step 2: Environment Setup
-```powershell
-# Copy example configuration templates
-Copy-Item .env.example .env
-Copy-Item backend\.env.example backend\.env
-Copy-Item frontend\.env.example frontend\.env
-```
+### 2. Backend Setup
+```bash
+# Create and activate Python virtual environment
+python -m venv venv
 
-### Step 3: Install Backend Dependencies
-```powershell
+# Windows (PowerShell):
+.\venv\Scripts\Activate.ps1
+# Linux / macOS:
+source venv/bin/activate
+
+# Install backend dependencies
 pip install -r backend/requirements.txt
-```
+# (or pip install -r requirements.txt)
 
-### Step 4: Install Frontend Dependencies & Verify Build
-```powershell
+# Start FastAPI server
+python -m uvicorn backend.app.main:app --port 8000 --host 127.0.0.1 --reload
+```
+*The backend API will be live at `http://127.0.0.1:8000` with interactive Swagger docs at `http://127.0.0.1:8000/docs`.*
+
+### 3. Frontend Setup
+In a new terminal window:
+```bash
 cd frontend
+
+# Install node dependencies
 npm install
+
+# Start development server
+npm run dev
+```
+*The frontend application will be live at `http://localhost:5173`.*
+
+### 4. Production Build Verification
+To validate production compilation:
+```bash
+cd frontend
 npm run build
-cd ..
 ```
 
 ---
 
-## 5. Running the Application
+## 🔐 Evaluation Accounts & Demonstration Credentials
 
-### Option A: Using Helper PowerShell Scripts
+For testing and hackathon evaluation, pre-configured role-based credentials are provided on the login interface:
 
-**Terminal 1 (Backend Server):**
-```powershell
-.\scripts\start_backend.ps1
-```
-The FastAPI backend starts at: **http://127.0.0.1:8000** (Swagger docs: `http://127.0.0.1:8000/docs`).
-
-**Terminal 2 (Frontend Dev Server):**
-```powershell
-.\scripts\start_frontend.ps1
-```
-The React frontend starts at: **http://localhost:5173**.
-
----
-
-## 6. Demo Accounts & Credentials
-
-| Role | Username / ID | Password | Portal Access |
+| Role | Username / Identifier | Email | Password |
 | :--- | :--- | :--- | :--- |
-| **Administrator** | `ADM001` | `admin123` | Institutional Admin, Priority Queue, Ingestion, Audits |
-| **Faculty Advisor** | `FAC001` | `faculty123` | Advisor Queue, Interventions, Milestone Verification |
-| **Student** | `S1001` | `student123` | Student 360 Profile, Timetable, Timeline, Fees |
+| **Admin** | `admin` | `admin@student360.edu` | `password123` |
+| **Faculty** | `faculty` | `faculty@student360.edu` | `password123` |
+| **Student** | `student` *(or `s1001`)* | `student@student360.edu` | `password123` |
+
+*The login interface includes an interactive 1-click autofill card to streamline evaluator testing.*
 
 ---
 
-## 7. Automated Test Suite & Verification
+## 🌐 Deployments & Project Links
 
-The unified test suite combines all test cases from both builds and adds comprehensive end-to-end workflow validation.
-
-### Run All Tests via Helper Script
-```powershell
-.\scripts\run_all_tests.ps1
-```
-
-### Run Tests via Pytest Directly
-```powershell
-pytest -v
-```
-
-### Verified Test Results
-```
-============================ 114 passed in 24.25s =============================
-- backend/tests/test_auth_rbac.py: 13 passed
-- backend/tests/test_cohort.py: 2 passed
-- backend/tests/test_college.py: 18 passed
-- backend/tests/test_csv_import.py: 6 passed
-- backend/tests/test_e2e_workflow.py: 1 passed (Complete 10-step flow)
-- backend/tests/test_end_to_end_integration.py: 1 passed
-- backend/tests/test_frontend_integration.py: 2 passed
-- backend/tests/test_health.py: 1 passed
-- backend/tests/test_intervention.py: 4 passed
-- backend/tests/test_model_integration.py: 3 passed
-- backend/tests/test_scoring_api.py: 8 passed
-- backend/tests/test_simulation.py: 4 passed
-- backend/tests/test_students.py: 4 passed
-- tests/test_demo_students.py: 2 passed
-- tests/test_model.py: 5 passed
-- tests/test_prediction.py: 7 passed
-- tests/test_preprocessing.py: 5 passed
-- ml/scoring/test_scoring.py: 11 passed
-- ml/explainability/test_explainability.py: 7 passed
-- ml/trajectory/test_trajectory.py: 7 passed
-Total: 114 passed, 0 failed, 0 skipped
-```
+- **Live Application Frontend**: [https://student360-plum.vercel.app](https://student360-plum.vercel.app)
+- **Live Backend API**: [https://student360-gy0b.onrender.com](https://student360-gy0b.onrender.com)
+- **API Health Check**: `https://student360-gy0b.onrender.com/health`
 
 ---
 
-## 8. Directory Structure
+## 👥 Team & Acknowledgments
 
-```
-Student360_Final_Integrated/
-├── backend/                    # FastAPI Application
-│   ├── app/
-│   │   ├── routes/             # RBAC Protected API Endpoints
-│   │   │   ├── auth.py         # Authentication & Session Management
-│   │   │   ├── cohort.py       # Aggregate Risk & Global SHAP
-│   │   │   ├── college.py      # Campus Portals (Schedule, Fees, Timeline)
-│   │   │   ├── data_import.py  # 36-Feature CSV Validation & Import
-│   │   │   ├── intervention.py # Intervention Review & Demonstration Outcomes
-│   │   │   ├── scoring.py      # Success Score & Placement Readiness
-│   │   │   ├── simulation.py   # Counterfactual What-If Engine
-│   │   │   └── students.py     # Priority Queue & Student 360 Profiles
-│   │   ├── services/           # Business Logic & Singletons
-│   │   ├── schemas.py          # Unified Pydantic Models
-│   │   ├── security.py         # Token Validation & RBAC Dependencies
-│   │   └── main.py             # FastAPI App Entrypoint & Lifespan
-│   ├── data/                   # Initial Seed Records & JSON Storage
-│   ├── requirements.txt        # Backend Python Dependencies
-│   └── tests/                  # 14 Backend Test Suites (67 Tests)
-├── frontend/                   # React 19 + Vite Frontend
-│   ├── src/
-│   │   ├── components/         # Modular UI Components & Badges
-│   │   ├── pages/              # Portal Views (Student360, Portals, Import)
-│   │   ├── services/api.js     # Unified API Client
-│   │   └── App.jsx             # Main Router & Authentication State
-│   ├── dist/                   # Production Static Build Artifacts
-│   └── package.json            # Frontend Dependencies & Scripts
-├── ml/                         # Machine Learning Pipeline
-│   ├── explainability/         # TreeSHAP Explainer & UCI Schema
-│   ├── models/                 # Frozen XGBoost Model & Preprocessor
-│   ├── prediction/             # Deterministic Predict Routines
-│   ├── scoring/                # Holistic & Placement Scoring Logic
-│   └── trajectory/             # Sem 1 to Sem 2 Trajectory Calculator
-├── docs/                       # Project Documentation & Audit Reports
-│   ├── API_CONTRACTS.md        # Complete OpenAPI & JSON Schema Reference
-│   ├── FEATURE_COMPARISON.md   # Build_1 vs Build_2 Side-by-Side Analysis
-│   ├── INTEGRATION_AUDIT.md    # Master Architecture Audit
-│   ├── INTEGRATION_PLAN.md     # 6-Stage Execution Blueprint
-│   ├── KNOWN_GAPS.md           # Resolved Integration Gaps
-│   ├── MODEL_BASELINE.md       # Model Weights & Determinism Baseline
-│   └── MODEL_METHODOLOGY.md    # Machine Learning & Scoring Methodology
-├── scripts/                    # Windows PowerShell Helper Scripts
-│   ├── start_backend.ps1       # Launch FastAPI Backend
-│   ├── start_frontend.ps1      # Launch React/Vite Frontend
-│   └── run_all_tests.ps1       # Execute 114 Unified Tests
-├── pytest.ini                  # Pytest Configuration
-├── .env.example                # Root Environment Template
-└── README.md                   # This Master Documentation File
-```
-
----
-
-## 9. Regulatory & Ethical Disclaimers
-
-1. **Human-in-the-Loop Governance:** Machine learning predictions serve as assistive decision-support tools for educators and counselors. The platform enforces human authorization for any retention intervention.
-2. **Scientific Interpretation:** Simulated outcomes and counterfactual projections reflect statistical model sensitivity to altered features and do not constitute guaranteed causal outcomes. All demonstration projections are marked with explicit demonstration notices.
+- **Hackathon**: KPMG HacXLerate 2026
+- **Project**: Student360
+- **Development & Integration**: Meghana (Integration Lead) & Team Student360
+- **Data Source**: UCI Machine Learning Repository

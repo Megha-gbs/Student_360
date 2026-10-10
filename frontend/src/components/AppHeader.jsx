@@ -2,15 +2,8 @@ import React, { useState } from 'react';
 import {
   Menu,
   Bell,
-  Search,
-  User,
-  GraduationCap,
-  Briefcase,
-  ShieldAlert,
   ChevronDown,
-  Sparkles,
 } from 'lucide-react';
-import ThemeToggle from './ThemeToggle';
 import NotificationCenter from './NotificationCenter';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -29,35 +22,35 @@ export default function AppHeader({ onToggleMobileSidebar, pageTitle, pageSubtit
   const getRoleBadgeStyle = (r) => {
     switch (r) {
       case 'admin':
-        return 'bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300 border-purple-200 dark:border-purple-800';
+        return 'bg-[#483698]/10 text-[#483698] border-[#483698]/30';
       case 'faculty':
-        return 'bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border-blue-200 dark:border-blue-800';
+        return 'bg-[#00338D]/10 text-[#00338D] border-[#00338D]/30';
       case 'student':
-        return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800';
+        return 'bg-[#1A7F37]/10 text-[#1A7F37] border-[#1A7F37]/30';
       default:
-        return 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-700';
+        return 'bg-[#F0F0F0] text-[#4A4A4A] border-[#D0D0D0]';
     }
   };
 
   return (
     <>
-      <header className="sticky top-0 z-30 h-16 bg-white/90 dark:bg-[#111625]/90 backdrop-blur-md border-b border-slate-200/80 dark:border-surface-darkborder flex items-center justify-between px-4 lg:px-6 transition-colors">
+      <header className="sticky top-0 z-30 h-14 bg-white border-b border-[#D0D0D0] flex items-center justify-between px-4 lg:px-6">
         {/* Left: Mobile Toggle & Page Title */}
         <div className="flex items-center gap-3">
           <button
             onClick={onToggleMobileSidebar}
-            className="p-2 rounded-xl text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 lg:hidden"
+            className="p-1.5 rounded-[3px] text-[#4A4A4A] hover:text-[#1A1A1A] hover:bg-[#F0F0F0] lg:hidden"
             aria-label="Toggle Navigation Menu"
           >
             <Menu className="w-5 h-5" />
           </button>
 
           <div>
-            <h1 className="text-sm lg:text-base font-extrabold text-slate-900 dark:text-white tracking-tight">
+            <h1 className="text-[15px] font-bold text-[#1A1A1A] tracking-tight leading-tight">
               {pageTitle || 'Student360 Platform'}
             </h1>
             {pageSubtitle && (
-              <p className="hidden md:block text-[11px] text-slate-500 dark:text-slate-400">
+              <p className="hidden md:block text-[11.5px] text-[#767676]">
                 {pageSubtitle}
               </p>
             )}
@@ -65,90 +58,76 @@ export default function AppHeader({ onToggleMobileSidebar, pageTitle, pageSubtit
         </div>
 
         {/* Center: Institutional Identity Badge */}
-        <div className="hidden lg:flex items-center gap-2 px-3 py-1 rounded-xl bg-slate-100/70 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-          <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">
-            {user?.department || 'University Portal'} &bull; Verified Institution
+        <div className="hidden lg:flex items-center gap-2 px-2.5 py-1 bg-[#F5F5F5] border border-[#D0D0D0] rounded-[3px]">
+          <span className="w-2 h-2 rounded-full bg-[#1A7F37]" />
+          <span className="text-[12px] font-medium text-[#4A4A4A]">
+            {user?.department || 'Department of Computer Science & Engineering'} &bull; KPMG Smart Campus Analytics
           </span>
         </div>
 
-        {/* Right: Actions (Notifications, Theme Toggle, User Profile) */}
-        <div className="flex items-center gap-2.5">
+        {/* Right: Actions (Notifications, User Profile) */}
+        <div className="flex items-center gap-2">
           {/* Notification Center Trigger with Badge */}
           <button
             onClick={() => setShowNotifications(true)}
-            className="relative p-2 rounded-xl text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-            title="Notifications & Today's Schedule Sync"
+            className="relative p-1.5 rounded-[3px] text-[#4A4A4A] hover:text-[#1A1A1A] hover:bg-[#F0F0F0] transition-colors"
+            title="Notifications & Schedule"
           >
-            <Bell className="w-5 h-5" />
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-rose-500 animate-pulse ring-2 ring-white dark:ring-surface-darkpanel" />
+            <Bell className="w-4 h-4" />
+            <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-[#B91C1C]" />
           </button>
 
-          {/* Theme Toggle */}
-          <ThemeToggle />
-
-          {/* User Profile Pill & Dropdown */}
+          {/* User Profile Dropdown */}
           <div className="relative">
             <button
               onClick={() => setShowUserMenu(!showUserMenu)}
-              className="flex items-center gap-2.5 p-1.5 pr-3 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 border border-transparent hover:border-slate-200 dark:hover:border-slate-700 transition-colors"
+              className="flex items-center gap-2 p-1 px-2 rounded-[3px] hover:bg-[#F5F5F5] border border-transparent hover:border-[#D0D0D0] transition-colors"
             >
-              <img
-                src={user?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'}
-                alt={user?.name || 'User'}
-                className="w-8 h-8 rounded-full object-cover ring-2 ring-indigo-500/30"
-              />
+              <div className="w-7 h-7 rounded-[3px] bg-[#00338D] text-white font-bold text-xs flex items-center justify-center">
+                {(user?.name || 'U')[0]}
+              </div>
               <div className="hidden sm:block text-left">
-                <p className="text-xs font-bold text-slate-900 dark:text-white leading-tight">
-                  {user?.name || 'Authenticated User'}
+                <p className="text-[12px] font-bold text-[#1A1A1A] leading-tight">
+                  {user?.name || 'User'}
                 </p>
                 <div className="flex items-center gap-1.5 mt-0.5">
-                  <span className={`px-1.5 py-0.2 text-[9px] font-bold rounded uppercase border ${getRoleBadgeStyle(role)}`}>
+                  <span className={`px-1 py-0.2 text-[9.5px] font-bold rounded-[2px] uppercase border ${getRoleBadgeStyle(role)}`}>
                     {role}
                   </span>
                   {user?.id && (
-                    <span className="text-[10px] text-slate-400 font-mono">
+                    <span className="text-[10px] text-[#767676] font-mono">
                       {user.id}
                     </span>
                   )}
                 </div>
               </div>
-              <ChevronDown className="w-3.5 h-3.5 text-slate-400 hidden sm:block ml-1" />
+              <ChevronDown className="w-3.5 h-3.5 text-[#767676] hidden sm:block ml-0.5" />
             </button>
 
             {showUserMenu && (
               <div
-                className="absolute right-0 mt-2 w-64 bg-white dark:bg-surface-darkpanel rounded-2xl shadow-xl border border-slate-200 dark:border-surface-darkborder py-2 z-50 animate-in fade-in zoom-in-95 duration-100"
+                className="absolute right-0 mt-1 w-56 bg-white rounded-[3px] border border-[#D0D0D0] shadow-sm py-1.5 z-50"
                 onClick={() => setShowUserMenu(false)}
               >
-                <div className="px-4 py-3 border-b border-slate-100 dark:border-surface-darkborder">
-                  <p className="text-xs font-bold text-slate-900 dark:text-slate-100 truncate">
+                <div className="px-3 py-2 border-b border-[#D0D0D0]">
+                  <p className="text-[12px] font-bold text-[#1A1A1A] truncate">
                     {user?.name}
                   </p>
-                  <p className="text-[11px] text-slate-500 truncate">{user?.email}</p>
-                  <div className="mt-2 flex items-center justify-between">
-                    <span className={`px-2 py-0.5 text-[10px] font-bold rounded uppercase border ${getRoleBadgeStyle(role)}`}>
-                      {role} Access
-                    </span>
-                    <span className="text-[10px] text-slate-400 font-mono">
-                      ID: {user?.id}
-                    </span>
-                  </div>
+                  <p className="text-[11px] text-[#767676] truncate">{user?.email}</p>
                 </div>
 
-                <div className="px-4 py-2 text-[11px] text-slate-500 dark:text-slate-400 space-y-1 border-b border-slate-100 dark:border-surface-darkborder">
-                  <div>Department: <span className="font-semibold text-slate-700 dark:text-slate-200">{user?.department || 'General'}</span></div>
-                  {user?.designation && <div>Title: <span className="font-semibold text-slate-700 dark:text-slate-200">{user.designation}</span></div>}
-                  {user?.program && <div>Program: <span className="font-semibold text-slate-700 dark:text-slate-200">{user.program}</span></div>}
+                <div className="px-3 py-1.5 text-[11px] text-[#4A4A4A] space-y-1 border-b border-[#D0D0D0]">
+                  <div>Department: <span className="font-semibold text-[#1A1A1A]">{user?.department || 'Computer Science'}</span></div>
+                  {user?.designation && <div>Role: <span className="font-semibold text-[#1A1A1A]">{user.designation}</span></div>}
                 </div>
 
-                <div className="pt-2 px-2">
+                <div className="pt-1 px-1.5">
                   <button
                     onClick={handleLogout}
-                    className="w-full text-left px-3 py-2 text-xs text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-xl font-bold flex items-center justify-between transition-colors"
+                    className="w-full text-left px-2 py-1.5 text-[12px] text-[#B91C1C] hover:bg-[#F5F5F5] rounded-[2px] font-bold flex items-center justify-between transition-colors"
                   >
-                    <span>Sign Out & End Session</span>
-                    <span className="text-[10px] opacity-70">&rarr;</span>
+                    <span>Sign Out</span>
+                    <span className="text-[11px]">&rarr;</span>
                   </button>
                 </div>
               </div>
@@ -156,7 +135,6 @@ export default function AppHeader({ onToggleMobileSidebar, pageTitle, pageSubtit
           </div>
         </div>
       </header>
-
 
       {/* Slide-out Notification Drawer */}
       <NotificationCenter

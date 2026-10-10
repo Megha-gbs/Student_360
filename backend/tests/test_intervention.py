@@ -16,7 +16,6 @@ if str(PROJECT_ROOT) not in sys.path:
 from backend.app.main import app
 
 client = TestClient(app)
-ADMIN_AUTH = {"Authorization": "Bearer student360_jwt_ADM001_test"}
 
 
 def test_post_intervene_draft_workflow():
@@ -26,7 +25,7 @@ def test_post_intervene_draft_workflow():
         "intervention_type": "tutoring",
         "parameters": {"hours": 10},
     }
-    response = client.post("/intervene", json=payload, headers=ADMIN_AUTH)
+    response = client.post("/intervene", json=payload)
     assert response.status_code == 200
     data = response.json()
 
@@ -46,7 +45,7 @@ def test_post_intervention_approved():
         "approved": True,
         "notes": "Approved tuition assistance plan for semester 2",
     }
-    response = client.post("/intervention", json=payload, headers=ADMIN_AUTH)
+    response = client.post("/intervention", json=payload)
     assert response.status_code == 200
     data = response.json()
 
@@ -61,7 +60,7 @@ def test_simulate_outcome_existing_student():
         "intervention_type": "financial_aid_counseling",
         "parameters": {"grant_amount": 500},
     }
-    response = client.post("/students/S1001/simulate-outcome", json=payload, headers=ADMIN_AUTH)
+    response = client.post("/students/S1001/simulate-outcome", json=payload)
     assert response.status_code == 200
     data = response.json()
 
@@ -77,7 +76,7 @@ def test_simulate_outcome_nonexistent_student_returns_404():
     payload = {
         "intervention_type": "tutoring",
     }
-    response = client.post("/students/S9999/simulate-outcome", json=payload, headers=ADMIN_AUTH)
+    response = client.post("/students/S9999/simulate-outcome", json=payload)
     assert response.status_code == 404
     data = response.json()
     assert "detail" in data

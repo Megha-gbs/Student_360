@@ -2,14 +2,18 @@
 
 Simulation routes for What-If scenario predictions.
 Validates modified feature inputs strictly against the frozen 36 UCI features schema.
-Supports both POST /simulate and POST /students/{student_id}/what-if with RBAC protection.
+Supports both POST /simulate and POST /students/{student_id}/what-if.
 """
 
-from typing import Any, Dict, Optional
+from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 
+from backend.app.core.security import (
+    AuthenticatedUser,
+    get_current_user,
+    verify_student_access,
+)
 from backend.app.schemas import SimulationRequest, SimulationResponse
-from backend.app.security import check_student_access, get_authenticated_user
 from backend.app.services.model_service import model_service
 from backend.app.services.student_service import student_service
 
@@ -46,12 +50,7 @@ def _execute_simulation(
         sim_features = dict(base_features)
         sim_features.update(changes_input)
     elif features_input:
-        if base_features and len(features_input) < 36:
-            sim_features = dict(base_features)
-            sim_features.update(features_input)
-        else:
-            sim_features = dict(features_input)
-
+        sim_features = dict(features_input)
         if original_risk is None and base_features:
             try:
                 base_pred = model_service.predict(features=base_features, student_id=target_student_id)
@@ -63,7 +62,6 @@ def _execute_simulation(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Either 'features' or 'changes' must be provided in simulation request.",
         )
-
 
     # Validate against frozen 36 UCI features schema
     try:
@@ -114,14 +112,9 @@ def _execute_simulation(
         "Does not claim causal guarantees or invent intervention effects."
     ),
 )
-def simulate_outcome(
-    request: SimulationRequest,
-    current_user: Dict[str, Any] = Depends(get_authenticated_user),
-) -> SimulationResponse:
+def simulate_outcome(request: SimulationRequest) -> SimulationResponse:
     """Run model-based what-if prediction on modified features."""
     target_student_id = request.student_id or "SIMULATED_STUDENT"
-    if request.student_id:
-        check_student_access(request.student_id, current_user)
     return _execute_simulation(
         features_input=request.features,
         changes_input=request.changes,
@@ -134,14 +127,18 @@ def simulate_outcome(
     response_model=SimulationResponse,
     summary="What-If Counterfactual Simulation for a specific student",
     description="Applies counterfactual feature modifications to a specific student and recalculates risk.",
+    responses={
+        403: {"description": "Access denied for unauthorized student"},
+        404: {"description": "Student not found"},
+    },
 )
 def simulate_student_what_if(
     student_id: str,
     request: SimulationRequest,
-    current_user: Dict[str, Any] = Depends(get_authenticated_user),
+    current_user: AuthenticatedUser = Depends(get_current_user),
 ) -> SimulationResponse:
     """Run model-based what-if simulation for a specified student."""
-    check_student_access(student_id, current_user)
+    verify_student_access(student_id=student_id, current_user=current_user)
     return _execute_simulation(
         features_input=request.features,
         changes_input=request.changes,

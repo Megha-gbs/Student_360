@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import AppSidebar from './AppSidebar';
 import AppHeader from './AppHeader';
+import Student360Assistant from './Student360Assistant';
 import { useAuth } from '../context/AuthContext';
 
 export default function DashboardLayout() {
@@ -12,13 +13,14 @@ export default function DashboardLayout() {
   // Page title resolution from path
   const getPageInfo = () => {
     const p = location.pathname;
-    if (p.includes('/student/dashboard')) return { title: 'Student Academic Portal', sub: 'Home overview & today’s schedule' };
+    if (p.includes('/student/dashboard')) return { title: 'Student Academic Portal', sub: 'Academic summary & daily schedule' };
     if (p.includes('/student/timetable')) return { title: 'Class Timetable', sub: 'Weekly lectures and laboratory periods' };
     if (p.includes('/student/attendance')) return { title: 'Attendance Health', sub: 'Subject-wise 75% eligibility tracker' };
     if (p.includes('/student/marks')) return { title: 'Marks & Transcripts', sub: 'Continuous internal assessments and CGPA' };
     if (p.includes('/student/assignments')) return { title: 'Coursework Deliverables', sub: 'Project submissions and grading feedback' };
     if (p.includes('/student/exams')) return { title: 'Examination Timetable', sub: 'Hall tickets, dates, and test venues' };
     if (p.includes('/student/fees')) return { title: 'Tuition Fee Accounts', sub: 'Invoices, scholarship grants, and payment history' };
+    if (p.includes('/student/timeline')) return { title: 'Achievements & Career Timeline', sub: 'Verified accomplishments & development portfolio' };
     if (p.includes('/student/ml-retention')) return { title: 'ML Retention Intelligence', sub: 'Explainable XGBoost early warning & trajectory' };
     if (p.includes('/student/profile')) return { title: 'Student Profile', sub: 'Identity records and credential settings' };
 
@@ -30,7 +32,7 @@ export default function DashboardLayout() {
     if (p.includes('/faculty/assignments')) return { title: 'Coursework & Grading Studio', sub: 'Publish assignments and review submissions' };
     if (p.includes('/faculty/announcements')) return { title: 'Department Announcements', sub: 'Broadcast class circulars' };
     if (p.includes('/faculty/retention')) return { title: 'Retention Priority Queue', sub: 'At-risk triage and causal intervention engine' };
-    if (p.includes('/faculty/profile')) return { title: 'Faculty Profile', sub: 'Academic credentials and departmental appointments' };
+    if (p.includes('/faculty/profile')) return { title: 'Faculty Profile', sub: 'Academic credentials and appointments' };
 
     if (p.includes('/admin/dashboard')) return { title: 'Directorate Executive Dashboard', sub: 'Institution-wide metrics & KPIs' };
     if (p.includes('/admin/students')) return { title: 'Student Lifecycle & Registrar', sub: 'Enrollment, status, and CSV batch import' };
@@ -54,30 +56,33 @@ export default function DashboardLayout() {
   const { title, sub } = getPageInfo();
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#f6f5fb] dark:bg-[#0b0f19] text-slate-900 dark:text-slate-100 transition-colors">
+    <div className="min-h-screen flex flex-col bg-[#F5F5F5] text-[#1A1A1A]">
       <AppSidebar
         isOpenMobile={isMobileSidebarOpen}
         onCloseMobile={() => setIsMobileSidebarOpen(false)}
       />
 
-      <div className="flex-1 flex flex-col lg:pl-64 transition-all">
+      <div className="flex-1 flex flex-col lg:pl-[240px] min-w-0">
         <AppHeader
           onToggleMobileSidebar={() => setIsMobileSidebarOpen(true)}
           pageTitle={title}
           pageSubtitle={sub}
         />
 
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
+        <main className="flex-1 p-3.5 sm:p-5 w-full max-w-[1600px] mx-auto min-w-0">
           <Outlet />
         </main>
 
-        <footer className="border-t border-slate-200/80 dark:border-surface-darkborder py-4 px-6 bg-white/50 dark:bg-surface-darkpanel/50 text-xs text-slate-500 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <span>Student360 — Professional College Management & Retention Platform</span>
-          <span className="font-mono text-[11px] text-slate-400">
-            Backend Engine: FastAPI • XGBoost UCI Retained Model
+        <footer className="border-t border-[#D0D0D0] py-2.5 px-5 bg-white text-[11.5px] text-[#767676] flex flex-col sm:flex-row items-center justify-between gap-2">
+          <span>Student360 &mdash; KPMG India Smart Campus Analytics Platform</span>
+          <span className="font-mono text-[11px] text-[#767676]">
+            Engine: FastAPI &bull; XGBoost UCI Retained Model (4,424 Records)
           </span>
         </footer>
       </div>
+
+      {/* Institutional AI Voice & Text Assistant */}
+      <Student360Assistant />
     </div>
   );
 }

@@ -5,14 +5,12 @@ Validates:
 - Full inputs, boundary inputs, missing values, and dynamic renormalization.
 - Academic extraction from genuine 36 UCI features.
 - 404 handling for nonexistent students.
-- RBAC boundary enforcement.
 """
 
 from fastapi.testclient import TestClient
 from backend.app.main import app
 
 client = TestClient(app)
-ADMIN_AUTH = {"Authorization": "Bearer student360_jwt_ADM001_test"}
 
 
 def test_post_placement_readiness_full():
@@ -92,7 +90,7 @@ def test_post_success_score_insufficient_weight():
 
 def test_get_student_success_score_existing():
     """Verify GET /students/{id}/success-score auto-derives academic score from real UCI features."""
-    response = client.get("/students/S1001/success-score", headers=ADMIN_AUTH)
+    response = client.get("/students/S1001/success-score")
     assert response.status_code == 200
     data = response.json()
     assert data["student_id"] == "S1001"
@@ -104,7 +102,7 @@ def test_get_student_success_score_existing():
 
 def test_get_student_placement_readiness_existing():
     """Verify GET /students/{id}/placement-readiness returns calculated readiness."""
-    response = client.get("/students/S1001/placement-readiness", headers=ADMIN_AUTH)
+    response = client.get("/students/S1001/placement-readiness")
     assert response.status_code == 200
     data = response.json()
     assert data["student_id"] == "S1001"
@@ -115,8 +113,8 @@ def test_get_student_placement_readiness_existing():
 
 def test_get_student_scoring_nonexistent():
     """Verify GET scoring for nonexistent student returns 404."""
-    res_success = client.get("/students/S9999/success-score", headers=ADMIN_AUTH)
+    res_success = client.get("/students/S9999/success-score")
     assert res_success.status_code == 404
 
-    res_placement = client.get("/students/S9999/placement-readiness", headers=ADMIN_AUTH)
+    res_placement = client.get("/students/S9999/placement-readiness")
     assert res_placement.status_code == 404

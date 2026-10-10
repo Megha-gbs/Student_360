@@ -1,24 +1,29 @@
 """backend/app/routes/students.py
 
 Student routes for querying student cohort list, priority queue, and detailed profiles.
-Enforces Role-Based Access Control (RBAC):
-- Administrator: All institution students
-- Faculty: Assigned students only
-- Student: Own profile only (403 for priority queue or other students)
+Enforces Role-Based Access Control:
+- Students may only view their own profile/records.
+- Faculty members can access assigned students.
+- Administrators have complete institutional access.
 """
 
-from typing import Any, Dict, Optional
-from fastapi import APIRouter, Depends, Header, HTTPException, status
+from typing import Any, Optional
+from fastapi import APIRouter, Depends, HTTPException, status
 
+from backend.app.core.security import (
+    AuthenticatedUser,
+    UserRole,
+    get_current_user,
+    verify_student_access,
+)
 from backend.app.schemas import (
     PredictionResult,
+    SHAPReason,
     StudentListItem,
     StudentListResponse,
     StudentResponse,
     TrajectoryData,
 )
-from backend.app.security import check_student_access, get_authenticated_user
-from backend.app.services.college_service import college_service
 from backend.app.services.model_service import model_service
 from backend.app.services.scoring_service import scoring_service
 from backend.app.services.shap_service import shap_service
@@ -55,7 +60,7 @@ router = APIRouter(tags=["Students"])
     "/students",
     response_model=StudentListResponse,
     summary="List all students with dynamic risk predictions",
-    description="Loads verified students permitted for the authenticated role, runs real inference, and calculates trend.",
+    description="Loads verified cohort students, runs real inference through XGBoost model, and calculates trend and priority.",
 )
 @router.get(
     "/students/priority-queue",
@@ -64,57 +69,76 @@ router = APIRouter(tags=["Students"])
     description="Ranks students descending by risk score for early warning intervention triage.",
 )
 def list_students(
-    current_user: Dict[str, Any] = Depends(get_authenticated_user),
+    page: Optional[int] = None,
+    limit: Optional[int] = None,
+    page_size: Optional[int] = None,
+    search: Optional[str] = None,
+    risk_level: Optional[str] = None,
+    course: Optional[str] = None,
+    sort_by: Optional[str] = None,
+    order: Optional[str] = "desc",
+    current_user: AuthenticatedUser = Depends(get_current_user),
 ) -> StudentListResponse:
-    """Fetch students permitted for current role, ranked by risk score."""
-    user_role = current_user.get("role")
-    if user_role == "student":
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Access denied. Priority Queue is restricted to Faculty and Administrators.",
-        )
-
+    """Fetch students with dynamic model predictions, ranked by risk score with pagination & filters."""
     raw_students = student_service.get_all_students()
     items = []
 
-    # Faculty sees assigned students only
-    assigned_ids = None
-    if user_role == "faculty":
-        fac_info = college_service.get_faculty_by_id(current_user.get("id")) or current_user
-        assigned_ids = fac_info.get("assigned_student_ids")
+    search_term = search.strip().lower() if search else None
+    target_risk = risk_level.strip().lower() if risk_level else None
+    target_course = course.strip().lower() if course else None
 
-    for raw in raw_students:
-        sid = str(raw.get("demo_id") or raw.get("student_id", "UNKNOWN"))
+    # Determine faculty assigned student boundary
+    assigned_set = set(current_user.assigned_students) if current_user.role == UserRole.FACULTY and current_user.assigned_students else None
 
-        if assigned_ids is not None and sid not in assigned_ids:
+    for s in raw_students:
+        sid = str(s.get("demo_id") or s.get("student_id"))
+
+        # Role filtering: If logged in as student, only show own record
+        if current_user.role == UserRole.STUDENT and sid != current_user.user_id:
             continue
 
-        features = raw.get("features", {})
+        # Role filtering: If logged in as faculty with explicit assigned students, filter
+        if assigned_set is not None and sid not in assigned_set:
+            continue
 
-        # Predict dynamically
-        pred = model_service.predict(features=features, student_id=sid)
-        risk_score = pred["risk_score"]
-        risk_level = pred["risk_level"]
-        dropout_prob = pred["dropout_probability"]
-        model_version = pred["model_version"]
-
-        # Trajectory trend calculation via Smruthi's trajectory engine
-        trend = trajectory_service.get_trend(features, risk_score_sem2=risk_score)
-
-        # Operational priority: High risk -> High, Medium -> Medium, Low -> Low
-        priority = risk_level
+        features = s.get("features", {})
         course_name = get_course_name(features.get("Course"))
 
-        # Holistic scoring indicators
+        # Search filter
+        if search_term and (search_term not in sid.lower() and search_term not in course_name.lower()):
+            continue
+
+        # Live prediction (instant via warm cache)
+        pred = model_service.predict(features=features, student_id=sid)
+        r_score = pred["risk_score"]
+        r_level = pred["risk_level"]
+        dropout_probability = pred["dropout_probability"]
+        model_version = pred["model_version"]
+
+        # Risk level filter
+        if target_risk and r_level.lower() != target_risk:
+            continue
+
+        # Course filter
+        if target_course and target_course not in course_name.lower() and target_course not in str(features.get("Course", "")).lower():
+            continue
+
+        # Trajectory trend
+        trend = trajectory_service.get_trend(features, risk_score_sem2=r_score)
+
+        # Operational priority: High risk -> High, Medium -> Medium, Low -> Low
+        priority = r_level
+
+        # Scoring indicators
         success_info = scoring_service.get_student_success_score(sid)
         placement_info = scoring_service.get_student_placement_readiness(sid)
 
         items.append(
             StudentListItem(
                 student_id=sid,
-                risk_score=risk_score,
-                risk_level=risk_level,
-                dropout_probability=dropout_prob,
+                risk_score=r_score,
+                risk_level=r_level,
+                dropout_probability=dropout_probability,
                 model_version=model_version,
                 trend=trend,
                 priority=priority,
@@ -124,19 +148,53 @@ def list_students(
             )
         )
 
-    # Sort descending by risk_score so highest risk students appear first in priority queue
-    items.sort(key=lambda s: s.risk_score, reverse=True)
+    # Sorting
+    is_reverse = (order or "desc").lower() == "desc"
+    if sort_by == "student_id":
+        items.sort(key=lambda s: s.student_id, reverse=is_reverse)
+    elif sort_by == "dropout_probability":
+        items.sort(key=lambda s: s.dropout_probability, reverse=is_reverse)
+    elif sort_by == "success_score":
+        items.sort(key=lambda s: s.success_score or 0, reverse=is_reverse)
+    elif sort_by == "placement_readiness":
+        items.sort(key=lambda s: s.placement_readiness or 0, reverse=is_reverse)
+    else:
+        # Default: Sort by risk_score descending
+        items.sort(key=lambda s: s.risk_score, reverse=is_reverse)
 
-    return StudentListResponse(total=len(items), students=items)
+    total_count = len(items)
+
+    # Pagination logic
+    eff_limit = limit or page_size
+    if page is not None or eff_limit is not None:
+        p_size = eff_limit if eff_limit and eff_limit > 0 else 50
+        p_num = max(1, page or 1)
+        start_idx = (p_num - 1) * p_size
+        end_idx = start_idx + p_size
+        paginated_items = items[start_idx:end_idx]
+        import math
+        total_pages = math.ceil(total_count / p_size) if p_size > 0 else 1
+        return StudentListResponse(
+            total=total_count,
+            students=paginated_items,
+            page=p_num,
+            page_size=p_size,
+            total_pages=total_pages,
+        )
+
+    return StudentListResponse(total=total_count, students=items)
 
 
 @router.get(
     "/students/{student_id}",
     response_model=StudentResponse,
-    summary="Get individual student risk details, SHAP reasons, and trajectory",
-    description="Retrieves a verified student by ID, enforces RBAC, evaluates live ML model risk, and attaches explainability.",
+    summary="Get individual student risk details, SHAP reasons, trajectory, and holistic scores",
+    description="Retrieves a verified student by ID, evaluates live ML model risk, attaches explainability, trajectory, and holistic scores.",
     responses={
-        403: {"description": "Access denied for unauthorized student/faculty"},
+        403: {
+            "description": "Unauthorized access to student record",
+            "content": {"application/json": {"example": {"detail": "Access denied."}}},
+        },
         404: {
             "description": "Student not found",
             "content": {"application/json": {"example": {"detail": "Student S9999 not found"}}},
@@ -145,18 +203,18 @@ def list_students(
 )
 def get_student(
     student_id: str,
-    current_user: Dict[str, Any] = Depends(get_authenticated_user),
+    current_user: AuthenticatedUser = Depends(get_current_user),
 ) -> StudentResponse:
     """Fetch individual student profile with dynamic predictions, SHAP, and trajectory."""
-    # Enforce RBAC (student own profile, faculty assigned, admin institution)
-    check_student_access(student_id, current_user)
-
     raw = student_service.get_student_by_id(student_id)
     if raw is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Student {student_id} not found",
         )
+
+    # Enforce access boundaries on existing student record
+    verify_student_access(student_id=student_id, current_user=current_user)
 
     sid = str(raw.get("demo_id") or raw.get("student_id", student_id))
     features = raw.get("features", {})

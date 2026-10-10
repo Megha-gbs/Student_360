@@ -10,7 +10,12 @@
 import axios from 'axios';
 
 // Ensure base URL points to the backend root without trailing /api
-const rawBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+const defaultBaseUrl =
+  typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1'
+    ? 'https://student360-gy0b.onrender.com'
+    : (typeof window !== 'undefined' && window.location.hostname === '127.0.0.1' ? 'http://127.0.0.1:8000' : 'http://localhost:8000');
+
+const rawBaseUrl = import.meta.env.VITE_API_BASE_URL || defaultBaseUrl;
 export const API_BASE_URL = rawBaseUrl.replace(/\/api\/?$/, '');
 
 const apiClient = axios.create({
@@ -623,14 +628,14 @@ export const notificationsApi = {
     const params = {};
     if (targetDate) params.target_date = targetDate;
     if (checkQuietHours) params.check_quiet_hours = checkQuietHours;
-    const res = await apiClient.post('/notifications/trigger-daily-schedule', null, { params });
+    const res = await apiClient.post('/notifications/trigger-daily-schedule', {}, { params });
     return res.data;
   },
 };
 
 export const adminApi = {
-  getStudents: async () => {
-    const res = await apiClient.get('/admin/students');
+  getStudents: async (params = {}) => {
+    const res = await apiClient.get('/admin/students', { params });
     return res.data;
   },
   createStudent: async (payload) => {
@@ -720,39 +725,17 @@ export const verificationApi = {
   },
 };
 
-export const scoringApi = {
-  getSuccessScore: async (studentId, params = {}) => {
-    const res = await apiClient.get(`/students/${studentId}/success-score`, { params });
+export const assistantApi = {
+  chat: async (payload) => {
+    const res = await apiClient.post('/assistant/chat', payload);
     return res.data;
   },
-  getPlacementReadiness: async (studentId, params = {}) => {
-    const res = await apiClient.get(`/students/${studentId}/placement-readiness`, { params });
-    return res.data;
-  },
-  calculateSuccessScore: async (payload) => {
-    const res = await apiClient.post('/scoring/success-score', payload);
-    return res.data;
-  },
-  calculatePlacementReadiness: async (payload) => {
-    const res = await apiClient.post('/scoring/placement-readiness', payload);
+  getStatus: async () => {
+    const res = await apiClient.get('/assistant/status');
     return res.data;
   },
 };
 
-export const importApi = {
-  validateCsv: async (csvContent, filename = 'academic_records.csv') => {
-    const res = await apiClient.post(`/data/validate-csv?filename=${encodeURIComponent(filename)}&preview_only=true`, csvContent, {
-      headers: { 'Content-Type': 'text/csv' },
-    });
-    return res.data;
-  },
-  importCsv: async (csvContent, filename = 'academic_records.csv') => {
-    const res = await apiClient.post(`/data/import-csv?filename=${encodeURIComponent(filename)}`, csvContent, {
-      headers: { 'Content-Type': 'text/csv' },
-    });
-    return res.data;
-  },
-};
 
 export default {
   API_BASE_URL,
@@ -777,9 +760,7 @@ export default {
   adminApi,
   timelineApi,
   verificationApi,
-  scoringApi,
-  importApi,
+  assistantApi,
 };
-
 
 

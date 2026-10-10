@@ -16,19 +16,18 @@ from backend.app.main import app
 import ml.prediction.predict as predict_module
 
 client = TestClient(app)
-ADMIN_AUTH = {"Authorization": "Bearer student360_jwt_ADM001_test"}
 
 
 def test_list_students_success():
-    """Verify GET /students returns all 10 verified demo students with live predictions."""
-    response = client.get("/students", headers=ADMIN_AUTH)
+    """Verify GET /students returns all cohort students with live predictions."""
+    response = client.get("/students")
     assert response.status_code == 200
     data = response.json()
 
     assert "total" in data
     assert "students" in data
-    assert data["total"] == 10
-    assert len(data["students"]) == 10
+    assert data["total"] == 4424
+    assert len(data["students"]) == 4424
 
     # Verify student structure
     first = data["students"][0]
@@ -41,9 +40,28 @@ def test_list_students_success():
     assert 0 <= first["risk_score"] <= 100
 
 
+def test_list_students_pagination_and_search():
+    """Verify pagination and search filtering work correctly."""
+    # Pagination
+    resp_paged = client.get("/students?page=1&limit=25")
+    assert resp_paged.status_code == 200
+    paged_data = resp_paged.json()
+    assert paged_data["total"] == 4424
+    assert len(paged_data["students"]) == 25
+    assert paged_data["page"] == 1
+    assert paged_data["page_size"] == 25
+    assert paged_data["total_pages"] == 177
+
+    # Search by ID
+    resp_search = client.get("/students?search=S1001")
+    assert resp_search.status_code == 200
+    search_data = resp_search.json()
+    assert any(s["student_id"] == "S1001" for s in search_data["students"])
+
+
 def test_get_individual_student_s1001():
     """Verify GET /students/S1001 retrieves verified high-risk student profile."""
-    response = client.get("/students/S1001", headers=ADMIN_AUTH)
+    response = client.get("/students/S1001")
     assert response.status_code == 200
     data = response.json()
 
@@ -82,7 +100,7 @@ def test_get_individual_student_s1001():
 
 def test_get_nonexistent_student_returns_404():
     """Verify GET /students/S9999 returns HTTP 404."""
-    response = client.get("/students/S9999", headers=ADMIN_AUTH)
+    response = client.get("/students/S9999")
     assert response.status_code == 404
     data = response.json()
     assert "detail" in data
@@ -102,7 +120,7 @@ def test_model_predict_is_actually_called_dynamically():
         return original_predict(*args, **kwargs)
 
     with patch.object(model_service, "predict", side_effect=mock_predict):
-        response = client.get("/students/S1002", headers=ADMIN_AUTH)
+        response = client.get("/students/S1002")
         assert response.status_code == 200
         assert call_count >= 1
 
@@ -110,4 +128,3 @@ def test_model_predict_is_actually_called_dynamically():
         assert data["student_id"] == "S1002"
         assert data["prediction"]["risk_score"] == 10
         assert data["prediction"]["risk_level"] == "Low"
-

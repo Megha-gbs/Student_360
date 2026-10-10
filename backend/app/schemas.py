@@ -3,8 +3,10 @@
 Pydantic Schemas for Student360 API.
 Ensures strict validation, consistent API contracts, and seamless
 alignment with the frozen Student360 Blueprint.
+Includes models for Student Success Score, Placement Readiness, CSV Import Validation, and RBAC.
 """
 
+from enum import Enum
 from typing import Any, Dict, List, Literal, Optional, Union
 from pydantic import BaseModel, Field
 
@@ -14,6 +16,22 @@ from pydantic import BaseModel, Field
 # ---------------------------------------------------------------------------
 class HealthResponse(BaseModel):
     status: str = Field(..., json_schema_extra={"example": "ok"})
+
+
+# ---------------------------------------------------------------------------
+# RBAC Schemas
+# ---------------------------------------------------------------------------
+class UserRole(str, Enum):
+    STUDENT = "student"
+    FACULTY = "faculty"
+    ADMIN = "admin"
+
+
+class UserProfile(BaseModel):
+    user_id: str
+    role: UserRole
+    email: Optional[str] = None
+    assigned_students: List[str] = Field(default_factory=list)
 
 
 # ---------------------------------------------------------------------------
@@ -94,6 +112,9 @@ class StudentListItem(BaseModel):
 class StudentListResponse(BaseModel):
     total: int
     students: List[StudentListItem]
+    page: Optional[int] = None
+    page_size: Optional[int] = None
+    total_pages: Optional[int] = None
 
 
 # ---------------------------------------------------------------------------
@@ -130,6 +151,7 @@ class InterventionRequest(BaseModel):
     parameters: Optional[Dict[str, Any]] = None
     approved: Optional[bool] = None
     notes: Optional[str] = None
+    current_risk: Optional[float] = None
 
 
 class InterventionResponse(BaseModel):
@@ -253,4 +275,3 @@ class CSVValidationResponse(BaseModel):
     errors: List[CSVRowError] = Field(default_factory=list)
     preview_sample: Optional[List[Dict[str, Any]]] = None
     message: str
-

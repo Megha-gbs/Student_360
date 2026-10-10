@@ -42,45 +42,45 @@ export default function FacultyDashboard() {
   }, [facultyId]);
 
   return (
-    <div className="space-y-6">
-      {/* Faculty Welcome Banner */}
-      <div className="card-panel p-6 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white relative overflow-hidden">
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="space-y-5">
+      {/* Faculty Profile Banner (Enterprise Reference) */}
+      <div className="bg-white border border-[#D0D0D0] rounded p-5">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <img
               src={user?.avatar || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80'}
               alt={user?.name || 'Faculty'}
-              className="w-16 h-16 rounded-2xl object-cover ring-4 ring-indigo-500/30 shadow-lg flex-shrink-0"
+              className="w-16 h-16 rounded object-cover border border-[#D0D0D0] flex-shrink-0"
             />
             <div>
-              <div className="flex items-center gap-2">
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-indigo-500/30 text-indigo-200 border border-indigo-400/30">
+              <div className="flex flex-wrap items-center gap-2">
+                <h1 className="text-xl font-bold text-[#1A1A1A] tracking-tight">
+                  {user?.name || 'Dr. Alan Turing'}
+                </h1>
+                <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-[#00338D]/10 text-[#00338D] border border-[#00338D]/20">
                   {user?.designation || 'Professor & Head of Department'}
                 </span>
-                <span className="text-slate-400 text-xs font-mono">
+                <span className="text-xs text-[#767676] font-mono">
                   Faculty ID: {facultyId}
                 </span>
               </div>
-              <h2 className="text-xl sm:text-2xl font-black tracking-tight mt-1">
-                Welcome back, {user?.name || 'Dr. Alan Turing'}
-              </h2>
-              <p className="text-xs text-indigo-200 mt-0.5">
-                {user?.department || 'Computer Science & Engineering'} • 3 Active Course Sections Assigned
+              <p className="text-xs text-[#4A4A4A] mt-1">
+                {user?.department || 'Computer Science & Engineering'} • 3 Active Course Sections Assigned • Academic Year 2024–2025
               </p>
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2 self-start md:self-center">
             <button
               onClick={() => navigate('/faculty/attendance')}
-              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs transition-all shadow-md shadow-indigo-600/30 flex items-center gap-1.5"
+              className="px-3.5 py-1.5 bg-[#00338D] hover:bg-[#002266] text-white font-bold rounded text-xs transition-colors flex items-center gap-1.5"
             >
               <CheckSquare className="w-3.5 h-3.5" />
               Mark Class Attendance
             </button>
             <button
               onClick={() => navigate('/faculty/retention')}
-              className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl text-xs transition-all shadow-md shadow-purple-600/30 flex items-center gap-1.5"
+              className="px-3.5 py-1.5 bg-[#483698] hover:bg-[#382680] text-white font-bold rounded text-xs transition-colors flex items-center gap-1.5"
             >
               <BrainCircuit className="w-3.5 h-3.5" />
               Priority Retention Queue
@@ -138,7 +138,7 @@ export default function FacultyDashboard() {
       </div>
 
       {/* Teaching Timetable & Quick Actions */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
         <div className="lg:col-span-8">
           <TimetableWidget
             schedule={timetable}
@@ -146,54 +146,54 @@ export default function FacultyDashboard() {
           />
         </div>
         <div className="lg:col-span-4 space-y-4">
-          <div className="card-panel p-5 space-y-3">
-            <h4 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+          <div className="bg-white border border-[#D0D0D0] rounded p-4 space-y-3">
+            <h2 className="text-xs font-bold text-[#1A1A1A] uppercase tracking-wider flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-[#00338D]" />
               Faculty Quick Actions
-            </h4>
+            </h2>
             <div className="space-y-2">
               <button
                 onClick={() => navigate('/faculty/attendance')}
-                className="w-full p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 border border-slate-200/80 dark:border-surface-darkborder text-xs font-bold text-left flex items-center justify-between group transition-all"
+                className="w-full p-2.5 rounded bg-[#FAFAFA] hover:bg-[#F5F5F5] border border-[#D0D0D0] text-xs font-semibold text-left flex items-center justify-between group transition-colors text-[#1A1A1A]"
               >
                 <span className="flex items-center gap-2">
-                  <CheckSquare className="w-4 h-4 text-indigo-600" />
+                  <CheckSquare className="w-4 h-4 text-[#00338D]" />
                   Take Class Attendance Sheet
                 </span>
-                <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:translate-x-1 transition-transform" />
+                <ArrowRight className="w-3.5 h-3.5 text-[#767676] group-hover:translate-x-0.5 transition-transform" />
               </button>
 
               <button
                 onClick={() => navigate('/faculty/marks')}
-                className="w-full p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 border border-slate-200/80 dark:border-surface-darkborder text-xs font-bold text-left flex items-center justify-between group transition-all"
+                className="w-full p-2.5 rounded bg-[#FAFAFA] hover:bg-[#F5F5F5] border border-[#D0D0D0] text-xs font-semibold text-left flex items-center justify-between group transition-colors text-[#1A1A1A]"
               >
                 <span className="flex items-center gap-2">
-                  <Award className="w-4 h-4 text-emerald-600" />
+                  <Award className="w-4 h-4 text-emerald-700" />
                   Enter Internal Assessment Marks
                 </span>
-                <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:translate-x-1 transition-transform" />
+                <ArrowRight className="w-3.5 h-3.5 text-[#767676] group-hover:translate-x-0.5 transition-transform" />
               </button>
 
               <button
                 onClick={() => navigate('/faculty/assignments')}
-                className="w-full p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 border border-slate-200/80 dark:border-surface-darkborder text-xs font-bold text-left flex items-center justify-between group transition-all"
+                className="w-full p-2.5 rounded bg-[#FAFAFA] hover:bg-[#F5F5F5] border border-[#D0D0D0] text-xs font-semibold text-left flex items-center justify-between group transition-colors text-[#1A1A1A]"
               >
                 <span className="flex items-center gap-2">
-                  <FileText className="w-4 h-4 text-purple-600" />
+                  <FileText className="w-4 h-4 text-[#483698]" />
                   Create New Assignment
                 </span>
-                <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:translate-x-1 transition-transform" />
+                <ArrowRight className="w-3.5 h-3.5 text-[#767676] group-hover:translate-x-0.5 transition-transform" />
               </button>
 
               <button
                 onClick={() => navigate('/faculty/retention')}
-                className="w-full p-2.5 rounded-xl bg-purple-50 dark:bg-purple-950/40 hover:bg-purple-100 border border-purple-200 text-xs font-bold text-left flex items-center justify-between group transition-all text-purple-900 dark:text-purple-200"
+                className="w-full p-2.5 rounded bg-[#483698]/10 hover:bg-[#483698]/15 border border-[#483698]/30 text-xs font-bold text-left flex items-center justify-between group transition-colors text-[#483698]"
               >
                 <span className="flex items-center gap-2">
-                  <BrainCircuit className="w-4 h-4 text-purple-600" />
+                  <BrainCircuit className="w-4 h-4 text-[#483698]" />
                   View Retention Priority Queue
                 </span>
-                <ArrowRight className="w-3.5 h-3.5 text-purple-600 group-hover:translate-x-1 transition-transform" />
+                <ArrowRight className="w-3.5 h-3.5 text-[#483698] group-hover:translate-x-0.5 transition-transform" />
               </button>
             </div>
           </div>
@@ -207,3 +207,4 @@ export default function FacultyDashboard() {
     </div>
   );
 }
+

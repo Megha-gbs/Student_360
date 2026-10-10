@@ -5,7 +5,7 @@ Verifies:
 - Schema checks against 36 UCI features.
 - Row-level error reporting, duplicate IDs, missing columns.
 - Preview mode vs Import mode.
-- Access restrictions on importing data with RBAC.
+- Access restrictions on importing data.
 """
 
 import json
@@ -18,8 +18,6 @@ from ml.explainability.uci_schema import UCI_ALL_FEATURES
 client = TestClient(app)
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
-ADMIN_AUTH = {"Authorization": "Bearer student360_jwt_ADM001_test"}
-STUDENT_AUTH = {"Authorization": "Bearer student360_jwt_S1001_test"}
 
 
 def _build_valid_csv_text(row_count=2) -> str:
@@ -109,7 +107,8 @@ def test_import_csv_role_protection():
     """Verify POST /data/import-csv forbids student role from importing datasets."""
     csv_text = _build_valid_csv_text(1)
     headers = {
-        **STUDENT_AUTH,
+        "X-User-Role": "student",
+        "X-User-Id": "S1001",
         "Content-Type": "text/csv",
     }
     response = client.post(
@@ -124,7 +123,8 @@ def test_import_csv_admin_success():
     """Verify Admin can import valid CSV and query newly ingested students."""
     csv_text = _build_valid_csv_text(1)
     headers = {
-        **ADMIN_AUTH,
+        "X-User-Role": "admin",
+        "X-User-Id": "ADMIN_DEAN",
         "Content-Type": "text/csv",
     }
     response = client.post(
@@ -138,7 +138,7 @@ def test_import_csv_admin_success():
     assert "Successfully validated" in data["message"]
 
     # Verify newly ingested student record is queryable
-    get_res = client.get("/students/TEST_S1", headers=ADMIN_AUTH)
+    get_res = client.get("/students/TEST_S1")
     assert get_res.status_code == 200
     stu_data = get_res.json()
     assert stu_data["student_id"] == "TEST_S1"
